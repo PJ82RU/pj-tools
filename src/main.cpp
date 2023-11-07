@@ -14,15 +14,11 @@ size_t on_test1(void *p_value, void *p_parameters) {
 
 size_t on_test2(void *p_value, void *p_parameters) {
     Serial.println("on_test2");
-//    test_t *t = (test_t *) p_value;
-//    Serial.println(t->value);
     return 0;
 }
 
 size_t on_test3(void *p_value, void *p_parameters) {
     Serial.println("on_test3");
-//    test_t *t = (test_t *) p_value;
-//    Serial.println(t->value);
     return 0;
 }
 
