@@ -18,6 +18,11 @@ namespace tools {
             void *p_parameters;
         } item_t;
 
+        typedef struct buffer_t {
+            int8_t index;
+            void *p_value;
+        } buffer_t;
+
         /**
          * Обратный вызов
          * @param pv_parameters
@@ -48,7 +53,7 @@ namespace tools {
          * @param only_index   Вызывать только по индексу
          * @return Индекс функции обратного вызова
          */
-        int8_t set(event_send_t item, void *p_parameters, bool only_index);
+        int8_t set(event_send_t item, void *p_parameters = nullptr, bool only_index = false);
 
         /** Очистить список функций обратного вызова */
         void clear();

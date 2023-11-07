@@ -6,15 +6,11 @@ namespace tools {
 
     void task_callback(void *pv_parameters) {
         Callback *callback = (Callback *) pv_parameters;
-        int8_t buf[sizeof(void *) + sizeof(int8_t)];
-        int8_t index;
-        void *p_value{};
+        Callback::buffer_t buf;
 
         for (;;) {
             if (xQueueReceive(callback->queue_callback, &buf, portMAX_DELAY) == pdTRUE) {
-                index = buf[0];
-                memcpy(p_value, &buf[1], sizeof(void *));
-                callback->call_items(p_value, index);
+                callback->call_items(buf.p_value, buf.index);
             }
         }
     }
@@ -22,7 +18,7 @@ namespace tools {
 #pragma clang diagnostic pop
 
     Callback::Callback() {
-        queue_callback = xQueueCreate(CALLBACK_BUFFER_NUM, sizeof(void *) + sizeof(int8_t));
+        queue_callback = xQueueCreate(CALLBACK_BUFFER_NUM, sizeof(buffer_t));
         log_i("Queue callback created");
 
         xTaskCreate(&task_callback, "CALLBACK", 8192, this, 15, &task_callback_call);
@@ -79,9 +75,9 @@ namespace tools {
 
     void Callback::call(void *p_value, int8_t index) {
         if (num_items > 0) {
-            int8_t buf[sizeof(void *) + sizeof(int8_t)];
-            buf[0] = index;
-            memcpy(&buf[1], p_value, sizeof(void *));
+            buffer_t buf{};
+            buf.p_value = p_value;
+            buf.index = index;
             xQueueSend(queue_callback, &buf, 0);
         }
     }
