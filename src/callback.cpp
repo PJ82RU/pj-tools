@@ -1,4 +1,5 @@
 #include "callback.h"
+#include "esp32-hal-log.h"
 
 namespace tools {
 #pragma clang diagnostic push
@@ -21,7 +22,7 @@ namespace tools {
         queue_callback = xQueueCreate(CALLBACK_BUFFER_NUM, sizeof(buffer_t));
         log_i("Queue callback created");
 
-        xTaskCreate(&task_callback, "CALLBACK", 8192, this, 15, &task_callback_call);
+        xTaskCreate(&task_callback, "CALLBACK", 1024, this, 15, &task_callback_call);
         log_i("Task callback created");
     }
 
@@ -42,6 +43,7 @@ namespace tools {
         items = new item_t[num];
         clear();
 
+        log_i("Callback initialized");
         return true;
     }
 
@@ -54,10 +56,15 @@ namespace tools {
                     _item->p_item = item;
                     _item->p_parameters = p_parameters;
                     _item->only_index = only_index;
+
+                    log_d("A callback with index %d was recorded", i);
                     return i;
                 }
             }
-        }
+            log_d("There is no free cell to record the callback");
+        } else
+            log_d("The object is not initialized");
+
         return -1;
     }
 
@@ -70,7 +77,9 @@ namespace tools {
                 _item->p_parameters = nullptr;
                 _item->only_index = false;
             }
-        }
+            log_d("Clearing all cells");
+        } else
+            log_d("The object is not initialized");
     }
 
     void Callback::call(void *p_value, int8_t index) {
@@ -79,7 +88,10 @@ namespace tools {
             buf.p_value = p_value;
             buf.index = index;
             xQueueSend(queue_callback, &buf, 0);
-        }
+
+            log_d("Calling the callback function");
+        } else
+            log_d("The object is not initialized");
     }
 
     void Callback::call_items(void *p_value, int8_t index) {
