@@ -3,7 +3,7 @@
 #include "bytes.h"
 #include "clock.h"
 
-typedef struct test_t {
+typedef struct test_t : tools::Callback::call_value_t {
     uint8_t value;
 } test_t;
 
@@ -24,7 +24,7 @@ size_t on_test3(void *p_value, void *p_parameters) {
     return 0;
 }
 
-tools::Callback callback;
+tools::Callback callback(sizeof(test_t));
 
 void setup() {
     Serial.begin(115200);
@@ -40,7 +40,7 @@ test_t test{};
 
 void loop() {
     test.value++;
-    callback.call(&test, 0);
+    callback.call(test);
     delay(1000);
 //    log_i("%d", uxTaskGetStackHighWaterMark(task_callback_call));
 }

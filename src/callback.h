@@ -18,9 +18,9 @@ namespace tools {
             void *p_parameters;
         } item_t;
 
-        typedef struct buffer_t {
+        typedef struct call_value_t {
             int8_t index;
-        } buffer_t;
+        } call_value_t;
 
         /**
          * Обратный вызов
@@ -35,9 +35,9 @@ namespace tools {
 
         /**
          * Обратный вызов
-         * @param size_buffer Размер буфера = sizeof(buffer_t)
+         * @param size Размер буфера
          */
-        Callback(size_t size_buffer);
+        Callback(size_t size = sizeof(call_value_t));
 
         ~Callback();
 
@@ -62,9 +62,9 @@ namespace tools {
 
         /**
          * Вызвать функцию обратного вызова
-         * @param p_value Передаваемые значения
+         * @param value Передаваемые значения
          */
-        void call(void *p_value);
+        void call(call_value_t &value);
 
     protected:
         QueueHandle_t queue_callback{};
@@ -74,9 +74,9 @@ namespace tools {
 
         /**
          * Вызвать функции обратного вызова
-         * @param p_value Передаваемые значения
+         * @param value Передаваемые значения
          */
-        void call_items(void *p_value);
+        void call_items(call_value_t &value);
 
     private:
         TaskHandle_t task_callback_call{};

@@ -7,22 +7,22 @@ namespace tools {
 
     void task_callback(void *pv_parameters) {
         Callback *callback = (Callback *) pv_parameters;
-        Callback::buffer_t *buf = nullptr;
+        tools::Callback::call_value_t value;
 
         for (;;) {
-            if (xQueueReceive(callback->queue_callback, buf, portMAX_DELAY) == pdTRUE) {
-                callback->call_items(buf);
+            if (xQueueReceive(callback->queue_callback, &value, portMAX_DELAY) == pdTRUE) {
+                callback->call_items(value);
             }
         }
     }
 
 #pragma clang diagnostic pop
 
-    Callback::Callback(size_t size_buffer) {
-        queue_callback = xQueueCreate(CALLBACK_BUFFER_NUM, size_buffer);
+    Callback::Callback(size_t size) {
+        queue_callback = xQueueCreate(CALLBACK_BUFFER_NUM, size);
         log_i("Queue callback created");
 
-        xTaskCreate(&task_callback, "CALLBACK", 1024, this, 15, &task_callback_call);
+        xTaskCreate(&task_callback, "CALLBACK", 4096, this, 15, &task_callback_call);
         log_i("Task callback created");
     }
 
@@ -82,27 +82,24 @@ namespace tools {
             log_d("The object is not initialized");
     }
 
-    void Callback::call(void *p_value) {
-        if (num_items > 0 && p_value) {
-            xQueueSend(queue_callback, p_value, 0);
+    void Callback::call(call_value_t &value) {
+        if (num_items > 0) {
+            xQueueSend(queue_callback, &value, 0);
 
             log_d("Calling the callback function");
         } else
             log_d("The object is not initialized");
     }
 
-    void Callback::call_items(void *p_value) {
-        if (!p_value) return;
-
+    void Callback::call_items(call_value_t &value) {
         item_t *_item;
         size_t size;
-        buffer_t *buf = (buffer_t *) p_value;
 
         for (int8_t i = 0; i < num_items; i++) {
             _item = &items[i];
-            if (_item->p_item && (!_item->only_index || _item->only_index && buf->index == i)) {
-                size = _item->p_item(p_value, _item->p_parameters);
-                if (size != 0 && cb_receive) cb_receive(p_value, p_receive_parameters);
+            if (_item->p_item && (!_item->only_index || _item->only_index && value.index == i)) {
+                size = _item->p_item(&value, _item->p_parameters);
+                if (size != 0 && cb_receive) cb_receive(&value, p_receive_parameters);
             }
         }
     }
