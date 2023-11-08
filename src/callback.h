@@ -20,6 +20,7 @@ namespace tools {
 
         typedef struct call_value_t {
             int8_t index;
+            size_t size;
         } call_value_t;
 
         /**
