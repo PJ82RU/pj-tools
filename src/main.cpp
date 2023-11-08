@@ -7,21 +7,21 @@ typedef struct test_t : tools::Callback::call_value_t {
     uint8_t value;
 } test_t;
 
-size_t on_test1(void *p_value, void *p_parameters) {
+bool on_test1(void *p_value, void *p_parameters) {
     Serial.println("on_test1");
     test_t *t = (test_t *) p_value;
     Serial.println(t->value);
-    return 0;
+    return false;
 }
 
-size_t on_test2(void *p_value, void *p_parameters) {
+bool on_test2(void *p_value, void *p_parameters) {
     Serial.println("on_test2");
-    return 0;
+    return false;
 }
 
-size_t on_test3(void *p_value, void *p_parameters) {
+bool on_test3(void *p_value, void *p_parameters) {
     Serial.println("on_test3");
-    return 0;
+    return false;
 }
 
 tools::Callback callback(sizeof(test_t));
@@ -42,5 +42,5 @@ void loop() {
     test.value++;
     callback.call(test);
     delay(1000);
-//    log_i("%d", uxTaskGetStackHighWaterMark(task_callback_call));
+//    Serial.println(uxTaskGetStackHighWaterMark(task_callback_call));
 }
