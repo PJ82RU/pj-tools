@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include "callback.h"
+#include "bytes.h"
+#include "clock.h"
 
 typedef struct test_t {
     uint8_t value;
