@@ -47,6 +47,10 @@ namespace tools {
         return true;
     }
 
+    bool Callback::is_init() {
+        return num_items > 0 && items;
+    }
+
     int8_t Callback::set(event_send_t item, void *p_parameters, bool only_index) {
         if (num_items > 0) {
             item_t *_item;
