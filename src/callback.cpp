@@ -22,7 +22,7 @@ namespace tools {
         queue_callback = xQueueCreate(CALLBACK_BUFFER_NUM, size);
         log_i("Queue callback created");
 
-        xTaskCreate(&task_callback, "CALLBACK", 4096, this, 15, &task_callback_call);
+        xTaskCreate(&task_callback, "CALLBACK", 1024, this, 15, &task_callback_call);
         log_i("Task callback created");
     }
 
