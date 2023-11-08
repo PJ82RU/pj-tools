@@ -35,15 +35,16 @@ namespace tools {
 
         /**
          * Обратный вызов
-         * @param size Размер буфера
+         * @param num  Количество элементов буфера
+         * @param size Размер элемента буфера
          */
-        Callback(size_t size = sizeof(call_value_t));
+        Callback(uint8_t num = CALLBACK_BUFFER_NUM, size_t size = sizeof(call_value_t));
 
         ~Callback();
 
         /**
          * Инициализация
-         * @param num Количество элементов
+         * @param num Количество функций обратного вызова
          * @return Результат выполнения
          */
         bool init(int8_t num);
@@ -69,8 +70,15 @@ namespace tools {
          */
         void call(call_value_t &value);
 
+        /**
+         * Чтение значения из буфера
+         * @param value Значение
+         * @return Результат выполнения
+         */
+        bool read(call_value_t &value);
+
     protected:
-        QueueHandle_t queue_callback{};
+        QueueHandle_t queue{};
 
         int8_t num_items = 0;
         item_t *items = nullptr;
