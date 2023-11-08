@@ -98,13 +98,14 @@ namespace tools {
 
     void Callback::call_items(call_value_t &value) {
         item_t *_item;
+        bool response;
 
         if (is_init()) {
             for (int8_t i = 0; i < num_items; i++) {
                 _item = &items[i];
                 if (_item->p_item && (!_item->only_index || _item->only_index && value.index == i)) {
-                    value.size = _item->p_item(&value, _item->p_parameters);
-                    if (value.size != 0 && cb_receive) cb_receive(&value, p_receive_parameters);
+                    response = _item->p_item(&value, _item->p_parameters);
+                    if (response && cb_receive) cb_receive(&value, p_receive_parameters);
                 }
             }
         }

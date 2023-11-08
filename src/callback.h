@@ -9,7 +9,7 @@
 namespace tools {
     class Callback {
     public:
-        typedef size_t (*event_send_t)(void *, void *);
+        typedef bool (*event_send_t)(void *, void *);
         typedef void (*event_receive_t)(void *, void *);
 
         typedef struct item_t {
@@ -20,7 +20,6 @@ namespace tools {
 
         typedef struct call_value_t {
             int8_t index;
-            size_t size;
         } call_value_t;
 
         /**
