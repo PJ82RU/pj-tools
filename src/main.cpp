@@ -24,7 +24,7 @@ bool on_test3(void *p_value, void *p_parameters) {
     return false;
 }
 
-tools::Callback callback(16, sizeof(test_t));
+tools::Callback callback(16, sizeof(test_t), "CALLBACK");
 
 void setup() {
     Serial.begin(115200);
