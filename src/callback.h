@@ -5,6 +5,7 @@
 
 #define CALLBACK_BUFFER_NUM     16
 #define CALLBACK_ITEM_MAX       100
+#define CALLBACK_ITEM_SIZE      64
 
 namespace tools {
     class Callback {
@@ -38,8 +39,8 @@ namespace tools {
 
         /**
          * Обратный вызов
-         * @param num  Количество элементов буфера
-         * @param size Размер элемента буфера
+         * @param num  Количество элементов буфера (максимальное значение 100)
+         * @param size Размер элемента буфера (максимальное значение 64)
          */
         Callback(uint8_t num = CALLBACK_BUFFER_NUM, size_t size = sizeof(call_value_t));
 

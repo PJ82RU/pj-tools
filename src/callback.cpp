@@ -19,7 +19,14 @@ namespace tools {
 #pragma clang diagnostic pop
 
     Callback::Callback(uint8_t num, size_t size) {
-        if (num > CALLBACK_ITEM_MAX) num = CALLBACK_ITEM_MAX;
+        if (num > CALLBACK_ITEM_MAX) {
+            num = CALLBACK_ITEM_MAX;
+            log_w("Too many variables for the buffer!");
+        }
+        if (size > CALLBACK_ITEM_SIZE) {
+            size = CALLBACK_ITEM_SIZE;
+            log_e("The variable size is too large!");
+        }
         queue = xQueueCreate(num, size);
         log_i("Queue callback created");
 

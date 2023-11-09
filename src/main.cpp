@@ -24,7 +24,7 @@ bool on_test3(void *p_value, void *p_parameters) {
     return false;
 }
 
-tools::Callback callback(sizeof(test_t));
+tools::Callback callback(16, sizeof(test_t));
 
 void setup() {
     Serial.begin(115200);
@@ -42,5 +42,5 @@ void loop() {
     test.value++;
     callback.call(test);
     delay(1000);
-//    Serial.println(uxTaskGetStackHighWaterMark(task_callback_call));
+//    Serial.println(uxTaskGetStackHighWaterMark(callback.task_callback_call));
 }
