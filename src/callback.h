@@ -33,6 +33,9 @@ namespace tools {
         /** Параметры передаваемые в функцию обратного вызова родителя */
         void *p_receive_parameters = nullptr;
 
+        /** Буфер очереди */
+        QueueHandle_t queue{};
+
         /**
          * Обратный вызов
          * @param num  Количество элементов буфера
@@ -78,8 +81,6 @@ namespace tools {
         bool read(call_value_t &value);
 
     protected:
-        QueueHandle_t queue{};
-
         int8_t num_items = 0;
         item_t *items = nullptr;
 
