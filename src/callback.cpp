@@ -18,7 +18,7 @@ namespace tools {
 
 #pragma clang diagnostic pop
 
-    Callback::Callback(uint8_t num, size_t size) {
+    Callback::Callback(uint8_t num, size_t size, const char *name, uint32_t stack_depth, UBaseType_t priority) {
         if (num > 0 && size > 0) {
             num_buffer = num;
             size_buffer = size;
@@ -28,7 +28,7 @@ namespace tools {
         queue = xQueueCreate(num, sizeof(buffer_item_t));
         log_i("Queue callback created");
 
-        xTaskCreate(&task_callback, "CALLBACK", 1024, this, 15, &task_callback_call);
+        xTaskCreate(&task_callback, name, stack_depth, this, priority, &task_callback_call);
         log_i("Task callback created");
     }
 

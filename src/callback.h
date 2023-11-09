@@ -33,10 +33,13 @@ namespace tools {
 
         /**
          * Обратный вызов
-         * @param num  Количество элементов буфера
-         * @param size Размер элемента буфера
+         * @param num         Количество элементов буфера
+         * @param size        Размер элемента буфера
+         * @param name        Имя задачи
+         * @param stack_depth Глубина стека
+         * @param priority    Приоритет
          */
-        Callback(uint8_t num, size_t size);
+        Callback(uint8_t num, size_t size, const char *name, uint32_t stack_depth = 1024, UBaseType_t priority = 15);
 
         ~Callback();
 
@@ -76,7 +79,7 @@ namespace tools {
          */
         bool read(void *value);
 
-        /** Размер используемого стека */
+        /** Глубина используемого стека */
         UBaseType_t task_stack_depth();
 
     protected:
