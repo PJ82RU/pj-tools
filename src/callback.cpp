@@ -6,12 +6,12 @@ namespace tools {
 #pragma ide diagnostic ignored "EndlessLoop"
 
     void task_callback(void *pv_parameters) {
-        Callback *callback = (Callback *) pv_parameters;
-        tools::Callback::call_value_t value;
+        auto *callback = (Callback *) pv_parameters;
+        tools::Callback::buffer_item_t b_item;
 
         for (;;) {
-            if (xQueueReceive(callback->queue, &value, portMAX_DELAY) == pdTRUE) {
-                callback->call_items(value);
+            if (xQueueReceive(callback->queue, &b_item, portMAX_DELAY) == pdTRUE) {
+                callback->call_items(b_item);
             }
         }
     }
@@ -19,15 +19,13 @@ namespace tools {
 #pragma clang diagnostic pop
 
     Callback::Callback(uint8_t num, size_t size) {
-        if (num > CALLBACK_ITEM_MAX) {
-            num = CALLBACK_ITEM_MAX;
-            log_w("Too many variables for the buffer!");
+        if (num > 0 && size > 0) {
+            num_buffer = num;
+            size_buffer = size;
+            buffer = new uint8_t[num_buffer * size_buffer];
         }
-        if (size > CALLBACK_ITEM_SIZE) {
-            size = CALLBACK_ITEM_SIZE;
-            log_e("The variable size is too large!");
-        }
-        queue = xQueueCreate(num, size);
+
+        queue = xQueueCreate(num, sizeof(buffer_item_t));
         log_i("Queue callback created");
 
         xTaskCreate(&task_callback, "CALLBACK", 1024, this, 15, &task_callback_call);
@@ -40,13 +38,13 @@ namespace tools {
         vQueueDelete(queue);
         log_i("Queue callback deleted");
 
-        if (items) delete items;
+        delete[] items;
+        delete[] buffer;
     }
 
-    bool Callback::init(int8_t num) {
-        if (num_items > 0 || num <= 0) return false;
+    bool Callback::init(uint8_t num) {
+        if (num_items > 0 || num == 0) return false;
 
-        if (num > CALLBACK_ITEM_MAX) num = CALLBACK_ITEM_MAX;
         num_items = num;
         items = new item_t[num];
         clear();
@@ -56,13 +54,13 @@ namespace tools {
     }
 
     bool Callback::is_init() {
-        return num_items > 0 && items;
+        return buffer && items;
     }
 
-    int8_t Callback::set(event_send_t item, void *p_parameters, bool only_index) {
+    int16_t Callback::set(event_send_t item, void *p_parameters, bool only_index) {
         if (is_init()) {
             item_t *_item;
-            for (int8_t i = 0; i < num_items; i++) {
+            for (int16_t i = 0; i < num_items; i++) {
                 _item = &items[i];
                 if (!_item->p_item) {
                     _item->p_item = item;
@@ -83,7 +81,7 @@ namespace tools {
     void Callback::clear() {
         if (is_init()) {
             item_t *_item;
-            for (int8_t i = 0; i < num_items; i++) {
+            for (int16_t i = 0; i < num_items; i++) {
                 _item = &items[i];
                 _item->p_item = nullptr;
                 _item->p_parameters = nullptr;
@@ -94,27 +92,47 @@ namespace tools {
             log_d("The object is not initialized");
     }
 
-    void Callback::call(call_value_t &value) {
-        xQueueSend(queue, &value, 0);
-        log_d("Calling the callback function");
+    void Callback::call(void *value, int16_t index) {
+        if (buffer && value) {
+            memcpy(&buffer[index_buffer * size_buffer], value, size_buffer);
+            buffer_item_t b_item{};
+            b_item.index_item = index;
+            b_item.index_buffer = index_buffer;
+
+            index_buffer++;
+            if (index_buffer >= num_buffer) index_buffer = 0;
+
+            xQueueSend(queue, &b_item, 0);
+            log_d("Calling the callback function");
+        }
     }
 
-    bool Callback::read(call_value_t &value) {
-        return xQueueReceive(queue, &value, 0) == pdTRUE;
+    bool Callback::read(void *value) {
+        if (!buffer || !value) return false;
+
+        buffer_item_t buf{};
+        bool result = xQueueReceive(queue, &buf, 0) == pdTRUE;
+        if (result) memcpy(value, &buffer[buf.index_buffer * size_buffer], size_buffer);
+        return result;
     }
 
-    void Callback::call_items(call_value_t &value) {
-        item_t *_item;
-        bool response;
-
+    void Callback::call_items(buffer_item_t &b_item) {
         if (is_init()) {
-            for (int8_t i = 0; i < num_items; i++) {
+            item_t *_item;
+            bool response;
+            size_t pos = b_item.index_buffer * size_buffer;
+
+            for (uint8_t i = 0; i < num_items; i++) {
                 _item = &items[i];
-                if (_item->p_item && (!_item->only_index || _item->only_index && value.index == i)) {
-                    response = _item->p_item(&value, _item->p_parameters);
-                    if (response && cb_receive) cb_receive(&value, p_receive_parameters);
+                if (_item->p_item && (!_item->only_index || _item->only_index && b_item.index_item == i)) {
+                    response = _item->p_item(&buffer[pos], _item->p_parameters);
+                    if (response && cb_receive) cb_receive(&buffer[pos], p_receive_parameters);
                 }
             }
         }
+    }
+
+    UBaseType_t Callback::task_stack_depth() {
+        return uxTaskGetStackHighWaterMark(task_callback_call);
     }
 }

@@ -3,14 +3,14 @@
 #include "bytes.h"
 #include "clock.h"
 
-typedef struct test_t : tools::Callback::call_value_t {
-    uint8_t value;
+typedef struct test_t {
+    uint8_t value[512];
 } test_t;
 
 bool on_test1(void *p_value, void *p_parameters) {
     Serial.println("on_test1");
-    test_t *t = (test_t *) p_value;
-    Serial.println(t->value);
+    auto *t = (test_t *) p_value;
+    Serial.println(t->value[500]);
     return false;
 }
 
@@ -31,16 +31,16 @@ void setup() {
     delay(1000);
 
     callback.init(3);
-    callback.set(on_test1, nullptr, true);
+    callback.set(on_test1);
     callback.set(on_test2, nullptr, true);
-    callback.set(on_test3);
+    callback.set(on_test3, nullptr, true);
 }
 
 test_t test{};
 
 void loop() {
-    test.value++;
-    callback.call(test);
+    test.value[500]++;
+    callback.call(&test);
     delay(1000);
-//    Serial.println(uxTaskGetStackHighWaterMark(callback.task_callback_call));
+    Serial.println(callback.task_stack_depth());
 }

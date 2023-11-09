@@ -3,10 +3,6 @@
 
 #include <Arduino.h>
 
-#define CALLBACK_BUFFER_NUM     16
-#define CALLBACK_ITEM_MAX       100
-#define CALLBACK_ITEM_SIZE      64
-
 namespace tools {
     class Callback {
     public:
@@ -19,9 +15,10 @@ namespace tools {
             void *p_parameters;
         } item_t;
 
-        typedef struct call_value_t {
-            int8_t index;
-        } call_value_t;
+        typedef struct buffer_item_t {
+            int16_t index_item;
+            uint8_t index_buffer;
+        } buffer_item_t;
 
         /**
          * Обратный вызов
@@ -34,15 +31,12 @@ namespace tools {
         /** Параметры передаваемые в функцию обратного вызова родителя */
         void *p_receive_parameters = nullptr;
 
-        /** Буфер очереди */
-        QueueHandle_t queue{};
-
         /**
          * Обратный вызов
-         * @param num  Количество элементов буфера (максимальное значение 100)
-         * @param size Размер элемента буфера (максимальное значение 64)
+         * @param num  Количество элементов буфера
+         * @param size Размер элемента буфера
          */
-        Callback(uint8_t num = CALLBACK_BUFFER_NUM, size_t size = sizeof(call_value_t));
+        Callback(uint8_t num, size_t size);
 
         ~Callback();
 
@@ -51,7 +45,7 @@ namespace tools {
          * @param num Количество функций обратного вызова
          * @return Результат выполнения
          */
-        bool init(int8_t num);
+        bool init(uint8_t num);
 
         /** Статус инициализации */
         bool is_init();
@@ -63,7 +57,7 @@ namespace tools {
          * @param only_index   Вызывать только по индексу
          * @return Индекс функции обратного вызова
          */
-        int8_t set(event_send_t item, void *p_parameters = nullptr, bool only_index = false);
+        int16_t set(event_send_t item, void *p_parameters = nullptr, bool only_index = false);
 
         /** Очистить список функций обратного вызова */
         void clear();
@@ -71,27 +65,44 @@ namespace tools {
         /**
          * Вызвать функцию обратного вызова
          * @param value Передаваемые значения
+         * @param index Индекс функции обратного вызова
          */
-        void call(call_value_t &value);
+        void call(void *value, int16_t index = -1);
 
         /**
          * Чтение значения из буфера
          * @param value Значение
          * @return Результат выполнения
          */
-        bool read(call_value_t &value);
+        bool read(void *value);
+
+        /** Размер используемого стека */
+        UBaseType_t task_stack_depth();
 
     protected:
-        int8_t num_items = 0;
+        QueueHandle_t queue{};
+
+        /** Количество функций обратного вызова */
+        uint8_t num_items = 0;
+        /** Список функций обратного вызова */
         item_t *items = nullptr;
 
         /**
          * Вызвать функции обратного вызова
-         * @param value Передаваемые значения
+         * @param b_item Индекс функции обратного вызова и индекс данных в буфере
          */
-        void call_items(call_value_t &value);
+        void call_items(buffer_item_t &b_item);
 
     private:
+        /** Количество элементов буфера */
+        uint8_t num_buffer = 0;
+        /** Размер элемента буфера */
+        size_t size_buffer = 0;
+        /** Позиция в буфере */
+        uint8_t index_buffer = 0;
+        /** Буфер данных */
+        uint8_t *buffer = nullptr;
+
         TaskHandle_t task_callback_call{};
     };
 }
