@@ -123,7 +123,7 @@ namespace tools {
     }
 
     void Callback::call_items(buffer_item_t &b_item) {
-        if (is_init()) {
+        if (is_init() && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
             item_t *_item;
             bool response;
             size_t pos = b_item.index_buffer * size_buffer;
@@ -135,6 +135,7 @@ namespace tools {
                     if (response && cb_receive) cb_receive(&buffer[pos], p_receive_parameters);
                 }
             }
+            xSemaphoreGive(mutex);
         }
     }
 
