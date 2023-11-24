@@ -107,6 +107,7 @@ namespace tools {
         uint8_t *buffer = nullptr;
 
         TaskHandle_t task_callback_call{};
+        SemaphoreHandle_t mutex = nullptr;
     };
 }
 

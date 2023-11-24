@@ -25,6 +25,8 @@ namespace tools {
             buffer = new uint8_t[num_buffer * size_buffer];
         }
 
+        mutex = xSemaphoreCreateMutex();
+
         queue = xQueueCreate(num, sizeof(buffer_item_t));
         log_i("Queue callback created");
 
@@ -58,7 +60,7 @@ namespace tools {
     }
 
     int16_t Callback::set(event_send_t item, void *p_parameters, bool only_index) {
-        if (is_init()) {
+        if (is_init() && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
             item_t *_item;
             for (int16_t i = 0; i < num_items; i++) {
                 _item = &items[i];
@@ -66,11 +68,13 @@ namespace tools {
                     _item->p_item = item;
                     _item->p_parameters = p_parameters;
                     _item->only_index = only_index;
+                    xSemaphoreGive(mutex);
 
                     log_d("A callback with index %d was recorded", i);
                     return i;
                 }
             }
+            xSemaphoreGive(mutex);
             log_d("There is no free cell to record the callback");
         } else
             log_d("The object is not initialized");
@@ -79,7 +83,7 @@ namespace tools {
     }
 
     void Callback::clear() {
-        if (is_init()) {
+        if (is_init() && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
             item_t *_item;
             for (int16_t i = 0; i < num_items; i++) {
                 _item = &items[i];
@@ -87,13 +91,14 @@ namespace tools {
                 _item->p_parameters = nullptr;
                 _item->only_index = false;
             }
+            xSemaphoreGive(mutex);
             log_d("Clearing all cells");
         } else
             log_d("The object is not initialized");
     }
 
     void Callback::call(void *value, int16_t index) {
-        if (buffer && value) {
+        if (buffer && value && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
             memcpy(&buffer[index_buffer * size_buffer], value, size_buffer);
             buffer_item_t b_item{};
             b_item.index_item = index;
@@ -103,6 +108,7 @@ namespace tools {
             if (index_buffer >= num_buffer) index_buffer = 0;
 
             xQueueSend(queue, &b_item, 0);
+            xSemaphoreGive(mutex);
             log_d("Calling the callback function");
         }
     }
