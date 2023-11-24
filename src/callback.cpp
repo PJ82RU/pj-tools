@@ -18,25 +18,33 @@ namespace tools {
 
 #pragma clang diagnostic pop
 
-    Callback::Callback(uint8_t num, size_t size, const char *name, uint32_t stack_depth, UBaseType_t priority) {
+    Callback::Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth, UBaseType_t t_priority) {
         if (num > 0 && size > 0) {
             num_buffer = num;
             size_buffer = size;
             buffer = new uint8_t[num_buffer * size_buffer];
-        }
 
-        mutex = xSemaphoreCreateMutex();
+            uint8_t len = strlen(name);
+            if (len >= sizeof(name)) {
+                len = sizeof(name) - 1;
+                name[len] = 0;
+            }
+            memcpy(name, t_name, len);
+            stack_depth = t_stack_depth;
+            priority = t_priority;
 
-        queue = xQueueCreate(num, sizeof(buffer_item_t));
-        log_i("Queue callback created");
-
-        xTaskCreate(&task_callback, name, stack_depth, this, priority, &task_callback_call);
-        log_i("Task callback created");
+            mutex = xSemaphoreCreateMutex();
+            queue = xQueueCreate(num, sizeof(buffer_item_t));
+            log_i("Queue callback created");
+        } else
+            log_e("Required parameters are missing");
     }
 
     Callback::~Callback() {
-        vTaskDelete(task_callback_call);
-        log_i("Task callback deleted");
+        if (task_callback_call) {
+            vTaskDelete(task_callback_call);
+            log_i("Task callback deleted");
+        }
         vQueueDelete(queue);
         log_i("Queue callback deleted");
 
@@ -45,12 +53,13 @@ namespace tools {
     }
 
     bool Callback::init(uint8_t num) {
-        if (num_items > 0 || num == 0) return false;
+        if (!buffer || num_items > 0 || num == 0) return false;
 
         num_items = num;
         items = new item_t[num];
         clear();
 
+        xTaskCreate(&task_callback, name, stack_depth, this, priority, &task_callback_call);
         log_i("Callback initialized");
         return true;
     }
@@ -62,7 +71,7 @@ namespace tools {
     int16_t Callback::set(event_send_t item, void *p_parameters, bool only_index) {
         if (is_init() && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
             item_t *_item;
-            for (int16_t i = 0; i < num_items; i++) {
+            for (int16_t i = 0; i < num_items; ++i) {
                 _item = &items[i];
                 if (!_item->p_item) {
                     _item->p_item = item;
@@ -85,7 +94,7 @@ namespace tools {
     void Callback::clear() {
         if (is_init() && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
             item_t *_item;
-            for (int16_t i = 0; i < num_items; i++) {
+            for (int16_t i = 0; i < num_items; ++i) {
                 _item = &items[i];
                 _item->p_item = nullptr;
                 _item->p_parameters = nullptr;
@@ -123,19 +132,16 @@ namespace tools {
     }
 
     void Callback::call_items(buffer_item_t &b_item) {
-        if (is_init() && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
-            item_t *_item;
-            bool response;
-            size_t pos = b_item.index_buffer * size_buffer;
+        item_t *_item;
+        bool response;
+        size_t pos = b_item.index_buffer * size_buffer;
 
-            for (uint8_t i = 0; i < num_items; i++) {
-                _item = &items[i];
-                if (_item->p_item && (!_item->only_index || _item->only_index && b_item.index_item == i)) {
-                    response = _item->p_item(&buffer[pos], _item->p_parameters);
-                    if (response && cb_receive) cb_receive(&buffer[pos], p_receive_parameters);
-                }
+        for (uint8_t i = 0; i < num_items; ++i) {
+            _item = &items[i];
+            if (_item->p_item && (!_item->only_index || _item->only_index && b_item.index_item == i)) {
+                response = _item->p_item(&buffer[pos], _item->p_parameters);
+                if (response && cb_receive) cb_receive(&buffer[pos], p_receive_parameters);
             }
-            xSemaphoreGive(mutex);
         }
     }
 

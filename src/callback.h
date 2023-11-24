@@ -33,13 +33,13 @@ namespace tools {
 
         /**
          * Обратный вызов
-         * @param num         Количество элементов буфера
-         * @param size        Размер элемента буфера
-         * @param name        Имя задачи
-         * @param stack_depth Глубина стека
-         * @param priority    Приоритет
+         * @param num           Количество элементов буфера
+         * @param size          Размер элемента буфера
+         * @param t_name        Имя задачи
+         * @param t_stack_depth Глубина стека
+         * @param t_priority    Приоритет
          */
-        Callback(uint8_t num, size_t size, const char *name, uint32_t stack_depth = 1024, UBaseType_t priority = 15);
+        Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth = 1024, UBaseType_t t_priority = 15);
 
         ~Callback();
 
@@ -108,6 +108,10 @@ namespace tools {
 
         TaskHandle_t task_callback_call{};
         SemaphoreHandle_t mutex = nullptr;
+
+        char name[32]{};
+        uint32_t stack_depth;
+        UBaseType_t priority;
     };
 }
 

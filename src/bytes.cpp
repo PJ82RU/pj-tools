@@ -4,7 +4,7 @@ namespace tools {
     String Bytes::bytes2hex(uint8_t *bytes, size_t size, bool upper_case) {
         String res = "", buf;
         if (size != 0) {
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < size; ++i) {
                 buf = String(bytes[i], HEX);
                 res += (buf.length() != 2 ? "0" : "") + buf;
             }
