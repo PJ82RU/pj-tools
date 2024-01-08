@@ -148,4 +148,9 @@ namespace tools {
     UBaseType_t Callback::task_stack_depth() {
         return uxTaskGetStackHighWaterMark(task_callback_call);
     }
+
+    void Callback::set_callback_receive(Callback::event_receive_t cb, void *p_parameters) {
+        cb_receive = cb;
+        p_receive_parameters = p_parameters;
+    }
 }

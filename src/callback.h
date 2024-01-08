@@ -26,11 +26,6 @@ namespace tools {
          */
         friend void task_callback(void *pv_parameters);
 
-        /** Функция обратного вызова родителя */
-        event_receive_t cb_receive = nullptr;
-        /** Параметры передаваемые в функцию обратного вызова родителя */
-        void *p_receive_parameters = nullptr;
-
         /**
          * Обратный вызов
          * @param num           Количество элементов буфера
@@ -79,11 +74,23 @@ namespace tools {
          */
         bool read(void *value);
 
+        /**
+         * Записать функцию обратного вызова родителя
+         * @param cb           Функция обратного вызова родителя
+         * @param p_parameters Параметры передаваемые в функцию обратного вызова родителя
+         */
+        void set_callback_receive(event_receive_t cb, void *p_parameters);
+
         /** Глубина используемого стека */
         UBaseType_t task_stack_depth();
 
     protected:
         QueueHandle_t queue{};
+
+        /** Функция обратного вызова родителя */
+        event_receive_t cb_receive = nullptr;
+        /** Параметры передаваемые в функцию обратного вызова родителя */
+        void *p_receive_parameters = nullptr;
 
         /** Количество функций обратного вызова */
         uint8_t num_items = 0;
