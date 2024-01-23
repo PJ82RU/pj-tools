@@ -24,7 +24,7 @@ namespace tools {
         return true;
     }
 
-    uint8_t Bytes::byte2hex(uint8_t byte) {
+    long Bytes::byte2hex(uint8_t byte) {
         uint8_t buf[1] = {byte};
         String res = bytes2hex(buf, 1);
         char *it = res.begin();

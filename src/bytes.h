@@ -29,7 +29,7 @@ namespace tools {
          * @param byte Байт
          * @return Число
          */
-        static uint8_t byte2hex(uint8_t byte);
+        static long byte2hex(uint8_t byte);
 
         /**
          * Сравнить два массива данных
