@@ -24,6 +24,14 @@ namespace tools {
         return true;
     }
 
+    uint8_t Bytes::byte2hex(uint8_t byte) {
+        uint8_t buf[1] = {byte};
+        String res = bytes2hex(buf, 1);
+        char *it = res.begin();
+        while (it != res.end() && std::isdigit(*it)) ++it;
+        return it == res.end() ? res.toInt() : 0;
+    }
+
     bool Bytes::compare(const uint8_t *buf1, const uint8_t *buf2, size_t size) {
         for (int i = 0; i < size; ++i) {
             if (buf1[i] != buf2[i]) return false;

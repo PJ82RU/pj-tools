@@ -25,6 +25,13 @@ namespace tools {
         static bool hex2bytes(String &hex, uint8_t bytes[], size_t size);
 
         /**
+         * Конвертировать байты в число HEX
+         * @param byte Байт
+         * @return Число
+         */
+        static uint8_t byte2hex(uint8_t byte);
+
+        /**
          * Сравнить два массива данных
          * @param buf1 Буфер данных 1
          * @param buf2 Буфер данных 2
