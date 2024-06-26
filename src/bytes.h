@@ -39,6 +39,13 @@ namespace tools {
          * @return Результат сравнения
          */
         static bool compare(const uint8_t *buf1, const uint8_t *buf2, size_t size);
+
+        /**
+         * Поменять байты местами в двух байтовом числе uint16_t
+         * @param value Значение
+         * @return Новое значение
+         */
+        static uint16_t byte_swap(uint16_t value);
     };
 }
 

@@ -38,4 +38,10 @@ namespace tools {
         }
         return true;
     }
+
+    uint16_t Bytes::byte_swap(uint16_t value) {
+        uint16_t b_high = (value >> 8) & 0xff;
+        uint16_t b_low = value & 0xff;
+        return (b_low << 8) | b_high;
+    }
 }
