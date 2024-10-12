@@ -18,20 +18,12 @@ namespace tools {
 
 #pragma clang diagnostic pop
 
-    Callback::Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth, UBaseType_t t_priority) {
+    Callback::Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth, UBaseType_t t_priority) :
+            thread(t_name, t_stack_depth, t_priority) {
         if (num > 0 && size > 0) {
             num_buffer = num;
             size_buffer = size;
             buffer = new uint8_t[num_buffer * size_buffer];
-
-            uint8_t len = strlen(name);
-            if (len >= sizeof(name)) {
-                len = sizeof(name) - 1;
-                name[len] = 0;
-            }
-            memcpy(name, t_name, len);
-            stack_depth = t_stack_depth;
-            priority = t_priority;
 
             mutex = xSemaphoreCreateMutex();
             queue = xQueueCreate(num, sizeof(buffer_item_t));
@@ -41,10 +33,7 @@ namespace tools {
     }
 
     Callback::~Callback() {
-        if (task_callback_call) {
-            vTaskDelete(task_callback_call);
-            log_i("Task callback deleted");
-        }
+        thread.stop();
         vQueueDelete(queue);
         log_i("Queue callback deleted");
 
@@ -59,9 +48,7 @@ namespace tools {
         items = new item_t[num];
         clear();
 
-        xTaskCreate(&task_callback, name, stack_depth, this, priority, &task_callback_call);
-        log_i("Callback initialized");
-        return true;
+        return thread.start(&task_callback, this);
     }
 
     bool Callback::is_init() {
@@ -143,10 +130,6 @@ namespace tools {
                 if (response && cb_receive) cb_receive(&buffer[pos], p_receive_parameters);
             }
         }
-    }
-
-    UBaseType_t Callback::task_stack_depth() {
-        return uxTaskGetStackHighWaterMark(task_callback_call);
     }
 
     void Callback::set_callback_receive(Callback::event_receive_t cb, void *p_parameters) {

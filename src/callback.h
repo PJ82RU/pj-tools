@@ -1,7 +1,7 @@
 #ifndef PJCAN_TOOLS_CALLBACK_H
 #define PJCAN_TOOLS_CALLBACK_H
 
-#include <Arduino.h>
+#include "thread.h"
 
 namespace tools {
     class Callback {
@@ -25,6 +25,9 @@ namespace tools {
          * @param pv_parameters
          */
         friend void task_callback(void *pv_parameters);
+
+        /** Поток */
+        Thread thread;
 
         /**
          * Обратный вызов
@@ -81,9 +84,6 @@ namespace tools {
          */
         void set_callback_receive(event_receive_t cb, void *p_parameters);
 
-        /** Глубина используемого стека */
-        UBaseType_t task_stack_depth();
-
     protected:
         QueueHandle_t queue{};
 
@@ -113,12 +113,7 @@ namespace tools {
         /** Буфер данных */
         uint8_t *buffer = nullptr;
 
-        TaskHandle_t task_callback_call{};
         SemaphoreHandle_t mutex = nullptr;
-
-        char name[32]{};
-        uint32_t stack_depth;
-        UBaseType_t priority;
     };
 }
 
