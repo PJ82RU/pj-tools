@@ -17,6 +17,9 @@ public:
     /** Остановить поток */
     void stop();
 
+    /** Поток запущен */
+    bool is_started();
+
     /** Глубина используемого стека */
     UBaseType_t task_stack_depth();
 
