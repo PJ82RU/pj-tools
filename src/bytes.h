@@ -8,8 +8,8 @@ namespace tools {
     public:
         /**
          * Конвертировать байты в строку HEX
-         * @param bytes      Массив байт
-         * @param size       Размер массива
+         * @param bytes Массив байт
+         * @param size Размер массива
          * @param upper_case Строка HEX в верхнем регистре
          * @return Строка HEX
          */
@@ -17,9 +17,9 @@ namespace tools {
 
         /**
          * Конвертировать строку HEX в байты
-         * @param hex   Строка HEX
+         * @param hex Строка HEX
          * @param bytes Массив байт
-         * @param size  Размер массива
+         * @param size Размер массива
          * @return Результат выполнения
          */
         static bool hex2bytes(String &hex, uint8_t bytes[], size_t size);

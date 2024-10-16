@@ -31,11 +31,11 @@ namespace tools {
 
         /**
          * Обратный вызов
-         * @param num           Количество элементов буфера
-         * @param size          Размер элемента буфера
-         * @param t_name        Имя задачи
+         * @param num Количество элементов буфера
+         * @param size Размер элемента буфера
+         * @param t_name Имя задачи
          * @param t_stack_depth Глубина стека
-         * @param t_priority    Приоритет
+         * @param t_priority Приоритет
          */
         Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth = 1024, UBaseType_t t_priority = 15);
 
@@ -53,9 +53,9 @@ namespace tools {
 
         /**
          * Записать функцию обратного вызова
-         * @param item         Функция обратного вызова
+         * @param item Функция обратного вызова
          * @param p_parameters Параметры передаваемые в функцию обратного вызова
-         * @param only_index   Вызывать только по индексу
+         * @param only_index Вызывать только по индексу
          * @return Индекс функции обратного вызова
          */
         int16_t set(event_send_t item, void *p_parameters = nullptr, bool only_index = false);
@@ -79,7 +79,7 @@ namespace tools {
 
         /**
          * Записать функцию обратного вызова родителя
-         * @param cb           Функция обратного вызова родителя
+         * @param cb Функция обратного вызова родителя
          * @param p_parameters Параметры передаваемые в функцию обратного вызова родителя
          */
         void set_callback_receive(event_receive_t cb, void *p_parameters);
