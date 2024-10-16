@@ -11,8 +11,22 @@ public:
 
     ~Thread();
 
-    /** Запуск потока */
+    /**
+     * Запуск потока
+     * @param pv_task_code
+     * @param pv_parameters
+     * @return
+     */
     bool start(TaskFunction_t pv_task_code, void *pv_parameters);
+
+    /**
+     * Запуск потока
+     * @param pv_task_code
+     * @param pv_parameters
+     * @param xCoreID
+     * @return
+     */
+    bool start(TaskFunction_t pv_task_code, void *pv_parameters, BaseType_t xCoreID);
 
     /** Остановить поток */
     void stop();

@@ -17,12 +17,21 @@ Thread::~Thread() {
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters) {
-    bool result = xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS;
-    if (result)
+    if (xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS) {
         log_i("Task %s created", name);
-    else
-        log_i("Task %s not created", name);
-    return result;
+        return true;
+    }
+    log_i("Task %s not created", name);
+    return false;
+}
+
+bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters, BaseType_t xCoreID) {
+    if (xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) == pdPASS) {
+        log_i("Task %s created", name);
+        return true;
+    }
+    log_i("Task %s not created", name);
+    return false;
 }
 
 void Thread::stop() {
