@@ -1,7 +1,7 @@
 #include "clock.h"
 
 namespace tools {
-    void Clock::get_time(char *buffer, unsigned long time, bool day, bool hour, bool minute, bool second) {
+    void get_time(char *buffer, unsigned long time, bool day, bool hour, bool minute, bool second) {
         uint8_t countDay, countHour, countMinute, countSecond;
 
         time /= 1000;
