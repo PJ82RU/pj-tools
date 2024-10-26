@@ -45,6 +45,10 @@ bool Thread::is_started() {
     return task_stack_depth() != 0;
 }
 
+uint32_t Thread::get_stack_depth() const {
+    return stack_depth;
+}
+
 UBaseType_t Thread::task_stack_depth() {
     return task ? uxTaskGetStackHighWaterMark(task) : 0;
 }

@@ -7,7 +7,7 @@
 
 class Thread {
 public:
-    Thread(const char *pc_name, uint32_t us_stack_depth = 4096, UBaseType_t ux_priority = 10);
+    Thread(const char *pc_name, uint32_t us_stack_depth, UBaseType_t ux_priority);
 
     ~Thread();
 
@@ -33,6 +33,9 @@ public:
 
     /** Поток запущен */
     bool is_started();
+
+    /** Глубина стека */
+    uint32_t get_stack_depth() const;
 
     /** Глубина используемого стека */
     UBaseType_t task_stack_depth();
