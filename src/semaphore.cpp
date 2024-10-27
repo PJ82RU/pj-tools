@@ -16,4 +16,13 @@ namespace tools {
     bool Semaphore::give() {
         return xSemaphoreGive(handle) == pdTRUE;
     }
+
+    void Semaphore::set_wait_time(unsigned long value) {
+        ms_wait = millis() + value;
+    }
+
+    void Semaphore::wait_time() const {
+        unsigned long ms;
+        while (ms_wait > (ms = millis())) delay(ms - ms_wait);
+    }
 }

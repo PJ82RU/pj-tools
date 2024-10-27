@@ -20,8 +20,18 @@ namespace tools {
         /** Освободить семафор */
         bool give();
 
+        /**
+         * Устанавливаем время ожидания
+         * @param value Значение
+         */
+        void set_wait_time(unsigned long value);
+
+        /** Ждем когда наступит время */
+        void wait_time() const;
+
     protected:
         SemaphoreHandle_t handle = nullptr;
+        unsigned long ms_wait = 0;
     };
 }
 
