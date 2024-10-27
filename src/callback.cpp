@@ -6,12 +6,13 @@ namespace tools {
 #pragma ide diagnostic ignored "EndlessLoop"
 
     void task_callback(void *pv_parameters) {
-        if (!pv_parameters) return;
-        auto *callback = (Callback *) pv_parameters;
-        tools::Callback::buffer_item_t b_item;
+        if (pv_parameters) {
+            auto *callback = (Callback *) pv_parameters;
+            tools::Callback::buffer_item_t b_item;
 
-        for (;;) {
-            if (callback->queue.receive(&b_item, portMAX_DELAY)) callback->call_items(b_item);
+            for (;;) {
+                if (callback->queue.receive(&b_item, portMAX_DELAY)) callback->call_items(b_item);
+            }
         }
     }
 
