@@ -17,6 +17,10 @@ namespace tools {
         return xSemaphoreGiveRecursive(handle) == pdTRUE;
     }
 
+    int Semaphore::get_count() {
+        return uxSemaphoreGetCount(handle);
+    }
+
     void Semaphore::set_wait_time(unsigned long value) {
         ms_wait = millis() + value;
     }
