@@ -1,8 +1,9 @@
 #include "semaphore.h"
 
 namespace tools {
-    Semaphore::Semaphore() {
-        handle = xSemaphoreCreateRecursiveMutex();
+    Semaphore::Semaphore(bool recursive) {
+        recursive_mutex = recursive;
+        handle = recursive_mutex ? xSemaphoreCreateRecursiveMutex() : xSemaphoreCreateMutex();
     }
 
     Semaphore::~Semaphore() {
@@ -10,11 +11,12 @@ namespace tools {
     }
 
     bool Semaphore::take(TickType_t block_time) {
-        return xSemaphoreTakeRecursive(handle, block_time) == pdTRUE;
+        return recursive_mutex ? xSemaphoreTakeRecursive(handle, block_time) == pdTRUE :
+               xSemaphoreTake(handle, block_time) == pdTRUE;
     }
 
     bool Semaphore::give() {
-        return xSemaphoreGiveRecursive(handle) == pdTRUE;
+        return recursive_mutex ? xSemaphoreGiveRecursive(handle) == pdTRUE : xSemaphoreGive(handle) == pdTRUE;
     }
 
     int Semaphore::get_count() {

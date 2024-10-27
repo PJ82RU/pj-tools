@@ -6,8 +6,11 @@
 namespace tools {
     class Semaphore {
     public:
-        /** Обвертка Семафор (по мере необходимости будут добавляться др. методы) */
-        Semaphore();
+        /**
+         * Обвертка Семафор (по мере необходимости будут добавляться др. методы)
+         * @param recursive Использовать рекурсивные методы
+         */
+        Semaphore(bool recursive);
         ~Semaphore();
 
         /**
@@ -34,6 +37,7 @@ namespace tools {
 
     protected:
         SemaphoreHandle_t handle = nullptr;
+        bool recursive_mutex = false;
         unsigned long ms_wait = 0;
     };
 }
