@@ -44,7 +44,7 @@ namespace tools {
          * @param t_priority Приоритет
          */
         Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth = 1024,
-                 UBaseType_t t_priority = 15);
+                 UBaseType_t t_priority = 18);
         ~Callback();
 
         /**
