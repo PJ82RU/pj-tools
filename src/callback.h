@@ -2,12 +2,12 @@
 #define PJCAN_TOOLS_CALLBACK_H
 
 #include "thread.h"
+#include "simple_callback.h"
 
 namespace tools {
     class Callback {
     public:
         typedef bool (*event_send_t)(void *, void *);
-        typedef void (*event_receive_t)(void *, void *);
 
         typedef struct item_t {
             bool only_index;
@@ -28,6 +28,8 @@ namespace tools {
 
         /** Поток */
         Thread thread;
+        /** Обратный вызов родителя */
+        SimpleCallback parent_callback;
 
         /**
          * Обратный вызов
@@ -37,8 +39,7 @@ namespace tools {
          * @param t_stack_depth Глубина стека
          * @param t_priority Приоритет
          */
-        Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth = 1024, UBaseType_t t_priority = 15);
-
+        Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth, UBaseType_t t_priority);
         ~Callback();
 
         /**
@@ -77,20 +78,8 @@ namespace tools {
          */
         bool read(void *value);
 
-        /**
-         * Записать функцию обратного вызова родителя
-         * @param cb Функция обратного вызова родителя
-         * @param p_parameters Параметры передаваемые в функцию обратного вызова родителя
-         */
-        void set_callback_receive(event_receive_t cb, void *p_parameters);
-
     protected:
         QueueHandle_t queue{};
-
-        /** Функция обратного вызова родителя */
-        event_receive_t cb_receive = nullptr;
-        /** Параметры передаваемые в функцию обратного вызова родителя */
-        void *p_receive_parameters = nullptr;
 
         /** Количество функций обратного вызова */
         uint8_t num_items = 0;

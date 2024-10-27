@@ -111,12 +111,14 @@ namespace tools {
     }
 
     bool Callback::read(void *value) {
-        if (!buffer || !value) return false;
-
-        buffer_item_t buf{};
-        bool result = xQueueReceive(queue, &buf, 0) == pdTRUE;
-        if (result) memcpy(value, &buffer[buf.index_buffer * size_buffer], size_buffer);
-        return result;
+        if (buffer && value && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
+            buffer_item_t buf{};
+            bool result = xQueueReceive(queue, &buf, 0) == pdTRUE;
+            if (result) memcpy(value, &buffer[buf.index_buffer * size_buffer], size_buffer);
+            xSemaphoreGive(mutex);
+            return result;
+        }
+        return false;
     }
 
     void Callback::call_items(buffer_item_t &b_item) {
@@ -128,13 +130,8 @@ namespace tools {
             _item = &items[i];
             if (_item->p_item && (!_item->only_index || _item->only_index && b_item.index_item == i)) {
                 response = _item->p_item(&buffer[pos], _item->p_parameters);
-                if (response && cb_receive) cb_receive(&buffer[pos], p_receive_parameters);
+                if (response) parent_callback.call(&buffer[pos]);
             }
         }
-    }
-
-    void Callback::set_callback_receive(Callback::event_receive_t cb, void *p_parameters) {
-        cb_receive = cb;
-        p_receive_parameters = p_parameters;
     }
 }
