@@ -20,7 +20,8 @@ namespace tools {
 
     Callback::Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth, UBaseType_t t_priority) :
             thread(t_name, t_stack_depth, t_priority),
-            queue(num, sizeof(buffer_item_t)) {
+            queue(num, sizeof(buffer_item_t)),
+            semaphore(false) {
         if (num > 0 && size > 0) {
             num_buffer = num;
             size_buffer = size;
