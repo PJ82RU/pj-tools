@@ -17,7 +17,8 @@ Thread::~Thread() {
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters) {
-    if (xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS) {
+    if (task_stack_depth() == 0 &&
+        xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS) {
         log_i("Task %s created", name);
         return true;
     }
@@ -26,7 +27,8 @@ bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters) {
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters, BaseType_t xCoreID) {
-    if (xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) == pdPASS) {
+    if (task_stack_depth() == 0 &&
+        xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) == pdPASS) {
         log_i("Task %s created", name);
         return true;
     }
@@ -35,7 +37,7 @@ bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters, BaseType_t 
 }
 
 void Thread::stop() {
-    if (task) {
+    if (task_stack_depth() != 0) {
         vTaskDelete(task);
         log_i("Task %s deleted", name);
     }
