@@ -5,6 +5,8 @@ namespace tools {
         set(cb, p_parameters);
     }
 
+    SimpleCallback::SimpleCallback() = default;
+
     void SimpleCallback::set(SimpleCallback::event_receive_t cb, void *p_parameters) {
         cb_receive = cb;
         p_receive_parameters = p_parameters;

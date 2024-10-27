@@ -9,6 +9,7 @@ namespace tools {
         typedef void (*event_receive_t)(void *, void *);
 
         SimpleCallback(event_receive_t cb, void *p_parameters);
+        SimpleCallback();
 
         /**
          * Записать параметры обратного вызова
