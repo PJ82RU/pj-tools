@@ -2,7 +2,7 @@
 
 namespace tools {
     Semaphore::Semaphore() {
-        handle = xSemaphoreCreateMutex();
+        handle = xSemaphoreCreateRecursiveMutex();
     }
 
     Semaphore::~Semaphore() {
@@ -10,11 +10,11 @@ namespace tools {
     }
 
     bool Semaphore::take(TickType_t block_time) {
-        return xSemaphoreTake(handle, block_time) == pdTRUE;
+        return xSemaphoreTakeRecursive(handle, block_time) == pdTRUE;
     }
 
     bool Semaphore::give() {
-        return xSemaphoreGive(handle) == pdTRUE;
+        return xSemaphoreGiveRecursive(handle) == pdTRUE;
     }
 
     void Semaphore::set_wait_time(unsigned long value) {
