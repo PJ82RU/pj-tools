@@ -6,7 +6,9 @@
 namespace tools {
     class Semaphore {
     public:
+        /** Обвертка Семафор (по мере необходимости будут добавляться др. методы) */
         Semaphore();
+        ~Semaphore();
 
         /**
          * Захват семафора

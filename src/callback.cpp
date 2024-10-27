@@ -11,33 +11,26 @@ namespace tools {
         tools::Callback::buffer_item_t b_item;
 
         for (;;) {
-            if (xQueueReceive(callback->queue, &b_item, portMAX_DELAY) == pdTRUE) {
-                callback->call_items(b_item);
-            }
+            if (callback->queue.receive(&b_item, portMAX_DELAY)) callback->call_items(b_item);
         }
     }
 
 #pragma clang diagnostic pop
 
     Callback::Callback(uint8_t num, size_t size, const char *t_name, uint32_t t_stack_depth, UBaseType_t t_priority) :
-            thread(t_name, t_stack_depth, t_priority) {
+            thread(t_name, t_stack_depth, t_priority),
+            queue(num, sizeof(buffer_item_t)) {
         if (num > 0 && size > 0) {
             num_buffer = num;
             size_buffer = size;
             buffer = new uint8_t[num_buffer * size_buffer];
-
-            mutex = xSemaphoreCreateMutex();
-            queue = xQueueCreate(num, sizeof(buffer_item_t));
-            log_i("Queue callback created");
+            log_i("Callback created");
         } else
             log_e("Required parameters are missing");
     }
 
     Callback::~Callback() {
         thread.stop();
-        vQueueDelete(queue);
-        log_i("Queue callback deleted");
-
         delete[] items;
         delete[] buffer;
     }
@@ -57,7 +50,7 @@ namespace tools {
     }
 
     int16_t Callback::set(event_send_t item, void *p_parameters, bool only_index) {
-        if (is_init() && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
+        if (is_init() && semaphore.take()) {
             item_t *_item;
             for (int16_t i = 0; i < num_items; ++i) {
                 _item = &items[i];
@@ -65,14 +58,13 @@ namespace tools {
                     _item->p_item = item;
                     _item->p_parameters = p_parameters;
                     _item->only_index = only_index;
-                    xSemaphoreGive(mutex);
-
                     log_d("A callback with index %d was recorded", i);
+                    semaphore.give();
                     return i;
                 }
             }
-            xSemaphoreGive(mutex);
             log_d("There is no free cell to record the callback");
+            semaphore.give();
         } else
             log_d("The object is not initialized");
 
@@ -80,7 +72,7 @@ namespace tools {
     }
 
     void Callback::clear() {
-        if (is_init() && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
+        if (is_init() && semaphore.take()) {
             item_t *_item;
             for (int16_t i = 0; i < num_items; ++i) {
                 _item = &items[i];
@@ -88,14 +80,14 @@ namespace tools {
                 _item->p_parameters = nullptr;
                 _item->only_index = false;
             }
-            xSemaphoreGive(mutex);
             log_d("Clearing all cells");
+            semaphore.give();
         } else
             log_d("The object is not initialized");
     }
 
     void Callback::call(void *value, int16_t index) {
-        if (buffer && value && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
+        if (buffer && value && semaphore.take()) {
             memcpy(&buffer[index_buffer * size_buffer], value, size_buffer);
             buffer_item_t b_item{};
             b_item.index_item = index;
@@ -104,18 +96,18 @@ namespace tools {
             index_buffer++;
             if (index_buffer >= num_buffer) index_buffer = 0;
 
-            xQueueSend(queue, &b_item, 0);
-            xSemaphoreGive(mutex);
+            queue.send(&b_item);
             log_d("Calling the callback function");
+            semaphore.give();
         }
     }
 
     bool Callback::read(void *value) {
-        if (buffer && value && xSemaphoreTake(mutex, portMAX_DELAY) == pdTRUE) {
+        if (buffer && value && semaphore.take()) {
             buffer_item_t buf{};
-            bool result = xQueueReceive(queue, &buf, 0) == pdTRUE;
+            bool result = queue.receive(&buf, 0);
             if (result) memcpy(value, &buffer[buf.index_buffer * size_buffer], size_buffer);
-            xSemaphoreGive(mutex);
+            semaphore.give();
             return result;
         }
         return false;

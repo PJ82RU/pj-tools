@@ -3,7 +3,10 @@
 namespace tools {
     Semaphore::Semaphore() {
         handle = xSemaphoreCreateMutex();
-        log_d("The mutex semaphore has been created");
+    }
+
+    Semaphore::~Semaphore() {
+        vSemaphoreDelete(handle);
     }
 
     bool Semaphore::take(TickType_t block_time) {

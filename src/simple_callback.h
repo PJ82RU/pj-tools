@@ -8,6 +8,11 @@ namespace tools {
     public:
         typedef void (*event_receive_t)(void *, void *);
 
+        /**
+         * Простая реализация обратного вызова
+         * @param cb Функция обратного вызова
+         * @param p_parameters Значение, которое передается в качестве параметра функции обратного вызова
+         */
         SimpleCallback(event_receive_t cb, void *p_parameters);
         SimpleCallback();
 

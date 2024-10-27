@@ -7,24 +7,29 @@
 
 class Thread {
 public:
+    /**
+     * Поток. Обвертка Задачи.
+     * @param pc_name Описательное имя задачи
+     * @param us_stack_depth Количество слов (не байтов!) для использования в качестве стека задачи
+     * @param ux_priority Приоритет, с которым будет выполняться созданная задача
+     */
     Thread(const char *pc_name, uint32_t us_stack_depth, UBaseType_t ux_priority);
-
     ~Thread();
 
     /**
      * Запуск потока
-     * @param pv_task_code
-     * @param pv_parameters
-     * @return
+     * @param pv_task_code Указатель на функцию ввода задачи
+     * @param pv_parameters Значение, которое передается в качестве параметра созданной задачи
+     * @return Результат выполнения
      */
     bool start(TaskFunction_t pv_task_code, void *pv_parameters);
 
     /**
      * Запуск потока
-     * @param pv_task_code
-     * @param pv_parameters
-     * @param xCoreID
-     * @return
+     * @param pv_task_code Указатель на функцию ввода задачи
+     * @param pv_parameters Значение, которое передается в качестве параметра созданной задачи
+     * @param xCoreID ID ядра
+     * @return Результат выполнения
      */
     bool start(TaskFunction_t pv_task_code, void *pv_parameters, BaseType_t xCoreID);
 

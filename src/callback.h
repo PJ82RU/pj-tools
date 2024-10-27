@@ -2,6 +2,8 @@
 #define PJCAN_TOOLS_CALLBACK_H
 
 #include "thread.h"
+#include "semaphore.h"
+#include "queue.h"
 #include "simple_callback.h"
 
 namespace tools {
@@ -28,6 +30,8 @@ namespace tools {
 
         /** Поток */
         Thread thread;
+        /** Очередь */
+        Queue queue;
         /** Обратный вызов родителя */
         SimpleCallback parent_callback;
 
@@ -79,8 +83,6 @@ namespace tools {
         bool read(void *value);
 
     protected:
-        QueueHandle_t queue{};
-
         /** Количество функций обратного вызова */
         uint8_t num_items = 0;
         /** Список функций обратного вызова */
@@ -102,7 +104,7 @@ namespace tools {
         /** Буфер данных */
         uint8_t *buffer = nullptr;
 
-        SemaphoreHandle_t mutex = nullptr;
+        Semaphore semaphore;
     };
 }
 
