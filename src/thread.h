@@ -1,7 +1,7 @@
 #ifndef PJCAN_FIRMWARE_THREAD_H
 #define PJCAN_FIRMWARE_THREAD_H
 
-#include <Arduino.h>
+#include "semaphore.h"
 
 #define THREAD_NAME_SIZE    32
 
@@ -57,6 +57,7 @@ protected:
     char name[THREAD_NAME_SIZE]{};
     uint32_t stack_depth = 0;
     UBaseType_t priority = 0;
+    tools::Semaphore semaphore;
 };
 
 #endif //PJCAN_FIRMWARE_THREAD_H
