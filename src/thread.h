@@ -37,7 +37,7 @@ public:
     void stop();
 
     /** Поток запущен */
-    bool is_started();
+    bool is_started() const;
 
     /** Глубина стека */
     uint32_t get_stack_depth() const;
@@ -46,6 +46,7 @@ public:
     UBaseType_t task_stack_depth();
 
 protected:
+    bool started = false;
     TaskHandle_t task{};
     char name[THREAD_NAME_SIZE]{};
     uint32_t stack_depth = 0;

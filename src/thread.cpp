@@ -17,33 +17,38 @@ Thread::~Thread() {
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters) {
-    bool result = task_stack_depth() == 0 &&
-                  xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS;
-    if (result) log_i("Task %s created", name);
-    else
-        log_i("Task %s not created", name);
-    return result;
+    if (!started) {
+        started = xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS;
+        if (started)
+            log_i("Task %s created", name);
+        else
+            log_i("Task %s not created", name);
+    }
+    return started;
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters, BaseType_t xCoreID) {
-    bool result = task_stack_depth() == 0 &&
-                  xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) ==
+    if (!started) {
+        started = xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) ==
                   pdPASS;
-    if (result) log_i("Task %s created", name);
-    else
-        log_i("Task %s not created", name);
-    return result;
+        if (started)
+            log_i("Task %s created", name);
+        else
+            log_i("Task %s not created", name);
+    }
+    return started;
 }
 
 void Thread::stop() {
-    if (task_stack_depth() != 0) {
+    if (started) {
+        started = false;
         vTaskDelete(task);
         log_i("Task %s deleted", name);
     }
 }
 
-bool Thread::is_started() {
-    return task_stack_depth() != 0;
+bool Thread::is_started() const {
+    return started && task;
 }
 
 uint32_t Thread::get_stack_depth() const {
@@ -51,6 +56,6 @@ uint32_t Thread::get_stack_depth() const {
 }
 
 UBaseType_t Thread::task_stack_depth() {
-    return task ? uxTaskGetStackHighWaterMark(task) : 0;
+    return is_started() ? uxTaskGetStackHighWaterMark(task) : 0;
 }
 
