@@ -15,13 +15,14 @@ namespace tools {
 
     bool hex2bytes(String &hex, uint8_t *bytes, size_t size) {
         size_t hexlen = hex.length();
-        if (!bytes || size == 0 || hexlen == 0 || hexlen % 2 != 0) return false;
-
-        size_t len = hexlen / 2;
-        for (int i = 0, j = 0; j < size; i += 2, j++) {
-            bytes[j] = j < len ? (hex[i] % 32 + 9) % 25 * 16 + (hex[i + 1] % 32 + 9) % 25 : 0;
+        bool result = hexlen != 0 && hexlen % 2 == 0 && bytes && size != 0;
+        if (result) {
+            size_t len = hexlen / 2;
+            for (int i = 0, j = 0; j < size; i += 2, j++) {
+                bytes[j] = j < len ? (hex[i] % 32 + 9) % 25 * 16 + (hex[i + 1] % 32 + 9) % 25 : 0;
+            }
         }
-        return true;
+        return result;
     }
 
     long byte2hex(uint8_t byte) {
