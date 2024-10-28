@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#define SemaphoreTake() semaphore(pdMS_TO_TICKS(3000), __FUNCTION__, __LINE__)
+
 namespace tools {
     class Semaphore {
     public:
@@ -18,7 +20,7 @@ namespace tools {
          * @param block_time Время в тиках
          * @return
          */
-        bool take(TickType_t block_time = pdMS_TO_TICKS(5000), const char *function = __FUNCTION__, int line = __LINE__);
+        bool take(TickType_t block_time = portMAX_DELAY, const char *function = nullptr, int line = 0);
 
         /** Освободить семафор */
         bool give();
