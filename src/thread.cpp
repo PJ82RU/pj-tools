@@ -51,6 +51,20 @@ bool Thread::is_started() const {
     return started && task;
 }
 
+void Thread::suspend() {
+    if (is_started()) {
+        vTaskSuspend(task);
+        log_i("Task %s is suspended", name);
+    }
+}
+
+void Thread::resume() {
+    if (is_started()) {
+        vTaskResume(task);
+        log_i("Task %s has been resumed", name);
+    }
+}
+
 uint32_t Thread::get_stack_depth() const {
     return stack_depth;
 }

@@ -39,6 +39,12 @@ public:
     /** Поток запущен */
     bool is_started() const;
 
+    /** Приостановить поток */
+    void suspend();
+
+    /** Возобновить приостановленный поток */
+    void resume();
+
     /** Глубина стека */
     uint32_t get_stack_depth() const;
 
