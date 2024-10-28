@@ -18,7 +18,7 @@ namespace tools {
          * @param block_time Время в тиках
          * @return
          */
-        bool take(TickType_t block_time = portMAX_DELAY);
+        bool take(TickType_t block_time = pdMS_TO_TICKS(5000), const char *function = __FUNCTION__, int line = __LINE__);
 
         /** Освободить семафор */
         bool give();
