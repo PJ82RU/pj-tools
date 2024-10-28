@@ -1,7 +1,6 @@
 #include "thread.h"
 
-Thread::Thread(const char *pc_name, uint32_t us_stack_depth, UBaseType_t ux_priority) :
-        semaphore(false) {
+Thread::Thread(const char *pc_name, uint32_t us_stack_depth, UBaseType_t ux_priority) {
     size_t len = strlen(pc_name);
     if (len >= sizeof(name)) {
         len = sizeof(name) - 1;
@@ -18,45 +17,35 @@ Thread::~Thread() {
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters) {
-    if (semaphore.take()) {
-        if (!started) {
-            started = xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS;
-            if (started) {
-                log_i("Task %s created", name);
-            } else {
-                log_i("Task %s not created", name);
-            }
+    if (!started) {
+        started = xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS;
+        if (started) {
+            log_i("Task %s created", name);
+        } else {
+            log_i("Task %s not created", name);
         }
-        semaphore.give();
     }
     return started;
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters, BaseType_t xCoreID) {
-    if (semaphore.take()) {
-        if (!started) {
-            started =
-                    xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) ==
-                    pdPASS;
-            if (started) {
-                log_i("Task %s created", name);
-            } else {
-                log_i("Task %s not created", name);
-            }
+    if (!started) {
+        started = xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) ==
+                  pdPASS;
+        if (started) {
+            log_i("Task %s created", name);
+        } else {
+            log_i("Task %s not created", name);
         }
-        semaphore.give();
     }
     return started;
 }
 
 void Thread::stop() {
-    if (semaphore.take()) {
-        if (started) {
-            started = false;
-            vTaskDelete(task);
-            log_i("Task %s deleted", name);
-        }
-        semaphore.give();
+    if (started) {
+        started = false;
+        vTaskDelete(task);
+        log_i("Task %s deleted", name);
     }
 }
 
@@ -65,22 +54,16 @@ bool Thread::is_started() const {
 }
 
 void Thread::suspend() {
-    if (semaphore.take()) {
-        if (is_started()) {
-            vTaskSuspend(task);
-            log_i("Task %s is suspended", name);
-        }
-        semaphore.give();
+    if (is_started()) {
+        vTaskSuspend(task);
+        log_i("Task %s is suspended", name);
     }
 }
 
 void Thread::resume() {
-    if (semaphore.take()) {
-        if (is_started()) {
-            vTaskResume(task);
-            log_i("Task %s has been resumed", name);
-        }
-        semaphore.give();
+    if (is_started()) {
+        vTaskResume(task);
+        log_i("Task %s has been resumed", name);
     }
 }
 
