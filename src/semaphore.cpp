@@ -10,10 +10,14 @@ namespace tools {
         vSemaphoreDelete(handle);
     }
 
-    bool Semaphore::take(TickType_t block_time, const char *function, int line) {
-        bool result = recursive_mutex ? xSemaphoreTakeRecursive(handle, block_time) == pdTRUE :
-                      xSemaphoreTake(handle, block_time) == pdTRUE;
-        if (!result) log_w("[%s():%d]: Semaphore timeout", function, line);
+    bool Semaphore::take(TickType_t block_time) {
+        return recursive_mutex ? xSemaphoreTakeRecursive(handle, block_time) == pdTRUE :
+               xSemaphoreTake(handle, block_time) == pdTRUE;
+    }
+
+    bool Semaphore::take(TickType_t block_time, const char *_func, int _line) {
+        bool result = take(block_time);
+        if (!result && _func) log_w("[%s:%d]: Semaphore timeout or error", _func, _line);
         return result;
     }
 
@@ -21,16 +25,13 @@ namespace tools {
         return recursive_mutex ? xSemaphoreGiveRecursive(handle) == pdTRUE : xSemaphoreGive(handle) == pdTRUE;
     }
 
+    bool Semaphore::give(const char *_func, int _line) {
+        bool result = give();
+        if (!result && _func) log_w("[%s:%d]: Semaphore give error", _func, _line);
+        return result;
+    }
+
     int Semaphore::get_count() {
         return uxSemaphoreGetCount(handle);
-    }
-
-    void Semaphore::set_wait_time(unsigned long value) {
-        ms_wait = millis() + value;
-    }
-
-    void Semaphore::wait_time() const {
-        unsigned long ms;
-        while (ms_wait > (ms = millis())) delay(ms - ms_wait);
     }
 }

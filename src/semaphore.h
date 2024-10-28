@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 
-#define SemaphoreTake() semaphore(pdMS_TO_TICKS(3000), __FUNCTION__, __LINE__)
+#define SemaphoreTake() semaphore.take(pdMS_TO_TICKS(3000), __PRETTY_FUNCTION__, __LINE__)
+#define SemaphoreGive() semaphore.give(pdMS_TO_TICKS(3000), __PRETTY_FUNCTION__, __LINE__)
 
 namespace tools {
     class Semaphore {
@@ -18,29 +19,37 @@ namespace tools {
         /**
          * Захват семафора
          * @param block_time Время в тиках
-         * @return
+         * @return Результат
          */
-        bool take(TickType_t block_time = portMAX_DELAY, const char *function = nullptr, int line = 0);
+        bool take(TickType_t block_time = portMAX_DELAY);
+        /**
+         * Захват семафора (для отладки используем SemaphoreTake())
+         * @param block_time Время в тиках
+         * @param _func Имя функции, которая вызывает take (для отладки)
+         * @param _line Строка в коде (для отладки)
+         * @return Результат
+         */
+        bool take(TickType_t block_time, const char *_func, int _line);
 
-        /** Освободить семафор */
+        /**
+         * Освободить семафор
+         * @return Результат
+         */
         bool give();
+        /**
+         * Освободить семафор (для отладки используем SemaphoreGive())
+         * @param _func Имя функции, которая вызывает take (для отладки)
+         * @param _line Строка в коде (для отладки)
+         * @return Результат
+         */
+        bool give(const char *_func, int _line);
 
         /** Возвращает счетчик семафора */
         int get_count();
 
-        /**
-         * Устанавливаем время ожидания
-         * @param value Значение
-         */
-        void set_wait_time(unsigned long value);
-
-        /** Ждем когда наступит время */
-        void wait_time() const;
-
     protected:
         SemaphoreHandle_t handle = nullptr;
         bool recursive_mutex = false;
-        unsigned long ms_wait = 0;
     };
 }
 
