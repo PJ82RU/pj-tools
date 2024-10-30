@@ -36,8 +36,9 @@ public:
     /** Остановить поток */
     void stop();
 
-    /** Статус задачи */
-    TaskStatus_t status() const;
+//    Не поддерживается Arduino
+//    /** Статус задачи */
+//    TaskStatus_t status() const;
 
     /** Поток запущен */
     bool is_started() const;

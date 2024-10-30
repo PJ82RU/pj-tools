@@ -55,25 +55,25 @@ void Thread::stop() {
     }
 }
 
-TaskStatus_t Thread::status() const {
-    TaskStatus_t details;
-    vTaskGetInfo(task, &details, pdTRUE, eInvalid);
-    return details;
-}
+//TaskStatus_t Thread::status() const {
+//    TaskStatus_t details;
+//    vTaskGetInfo(task, &details, pdTRUE, eInvalid);
+//    return details;
+//}
 
 bool Thread::is_started() const {
-    return task && status().eCurrentState == eTaskState::eRunning;
+    return task != nullptr;
 }
 
 void Thread::suspend() {
-    if (is_started()) {
+    if (task) {
         vTaskSuspend(task);
         log_i("Task %s is suspended", name);
     }
 }
 
 void Thread::resume() {
-    if (is_started()) {
+    if (task) {
         vTaskResume(task);
         log_i("Task %s has been resumed", name);
     }
@@ -84,6 +84,6 @@ uint32_t Thread::get_stack_depth() const {
 }
 
 UBaseType_t Thread::task_stack_depth() {
-    return is_started() ? uxTaskGetStackHighWaterMark(task) : 0;
+    return task ? uxTaskGetStackHighWaterMark(task) : 0;
 }
 
