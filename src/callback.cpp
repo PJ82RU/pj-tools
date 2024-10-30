@@ -8,13 +8,7 @@ namespace tools {
     void task_callback(void *pv_parameters) {
         if (pv_parameters) {
             auto *callback = (Callback *) pv_parameters;
-            tools::Callback::buffer_item_t b_item;
-
-            for (;;) {
-                if (callback->queue.receive(&b_item, portMAX_DELAY)) {
-                    callback->call_items(b_item);
-                }
-            }
+            for (;;) callback->handle();
         }
     }
 
@@ -134,5 +128,10 @@ namespace tools {
                 if (response) parent_callback.call(&buffer[pos]);
             }
         }
+    }
+
+    void Callback::handle() {
+        tools::Callback::buffer_item_t b_item;
+        if (queue.receive(&b_item, portMAX_DELAY)) call_items(b_item);
     }
 }

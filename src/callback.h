@@ -95,6 +95,9 @@ namespace tools {
          */
         void call_items(buffer_item_t &b_item);
 
+        /** Выполнение потока */
+        void handle();
+
     private:
         /** Количество элементов буфера */
         uint8_t num_buffer = 0;
