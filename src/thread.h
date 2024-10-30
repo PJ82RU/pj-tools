@@ -36,6 +36,9 @@ public:
     /** Остановить поток */
     void stop();
 
+    /** Статус задачи */
+    TaskStatus_t status() const;
+
     /** Поток запущен */
     bool is_started() const;
 
@@ -52,8 +55,7 @@ public:
     UBaseType_t task_stack_depth();
 
 protected:
-    bool started = false;
-    TaskHandle_t task{};
+    TaskHandle_t task = nullptr;
     char name[THREAD_NAME_SIZE]{};
     uint32_t stack_depth = 0;
     UBaseType_t priority = 0;

@@ -17,40 +17,52 @@ Thread::~Thread() {
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters) {
-    if (!started) {
-        started = xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS;
-        if (started) {
+    bool result;
+    if (!task) {
+        result = xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS;
+        if (result) {
             log_i("Task %s created", name);
         } else {
             log_i("Task %s not created", name);
         }
+    } else {
+        result = true;
     }
-    return started;
+    return result;
 }
 
 bool Thread::start(TaskFunction_t pv_task_code, void *pv_parameters, BaseType_t xCoreID) {
-    if (!started) {
-        started = xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) ==
+    bool result;
+    if (!task) {
+        result = xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) ==
                   pdPASS;
-        if (started) {
+        if (result) {
             log_i("Task %s created", name);
         } else {
             log_i("Task %s not created", name);
         }
+    } else {
+        result = true;
     }
-    return started;
+    return result;
 }
 
 void Thread::stop() {
-    if (started) {
-        started = false;
+    if (task) {
         vTaskDelete(task);
+        task = nullptr;
         log_i("Task %s deleted", name);
     }
 }
 
+TaskStatus_t Thread::status() const {
+    TaskStatus_t details;
+    vTaskGetInfo(task, &details, pdTRUE, eInvalid);
+    return details;
+}
+
 bool Thread::is_started() const {
-    return started && task;
+    return task && status().eCurrentState == eTaskState::eRunning;
 }
 
 void Thread::suspend() {
