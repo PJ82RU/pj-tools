@@ -2,7 +2,7 @@
 
 namespace tools
 {
-    String bytes2hex(const uint8_t* bytes, const size_t size, const bool upper_case)
+    String bytes2hex(uint8_t* bytes, const size_t size, const bool upper_case)
     {
         String res = "";
         if (size != 0)
