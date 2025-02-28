@@ -6,14 +6,16 @@
 #define SemaphoreTake() semaphore.take(pdMS_TO_TICKS(3000), __PRETTY_FUNCTION__, __LINE__)
 #define SemaphoreGive() semaphore.give(pdMS_TO_TICKS(3000), __PRETTY_FUNCTION__, __LINE__)
 
-namespace tools {
-    class Semaphore {
+namespace tools
+{
+    class Semaphore
+    {
     public:
         /**
          * Обвертка Семафор (по мере необходимости будут добавляться др. методы)
          * @param recursive Использовать рекурсивные методы
          */
-        Semaphore(bool recursive);
+        explicit Semaphore(bool recursive);
         ~Semaphore();
 
         /**
@@ -29,7 +31,7 @@ namespace tools {
          * @param _line Строка в коде (для отладки)
          * @return Результат
          */
-        bool take(TickType_t block_time, const char *_func, int _line);
+        bool take(TickType_t block_time, const char* _func, int _line);
 
         /**
          * Освободить семафор
@@ -42,10 +44,10 @@ namespace tools {
          * @param _line Строка в коде (для отладки)
          * @return Результат
          */
-        bool give(const char *_func, int _line);
+        bool give(const char* _func, int _line);
 
         /** Возвращает счетчик семафора */
-        int get_count();
+        int get_count() const;
 
     protected:
         SemaphoreHandle_t handle = nullptr;
