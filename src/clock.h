@@ -3,7 +3,8 @@
 
 #include <Arduino.h>
 
-namespace tools {
+namespace tools
+{
     /**
      * Читать форматированное время
      * @param buffer Буфер (16 символов)
@@ -13,7 +14,8 @@ namespace tools {
      * @param minute Показать минуты
      * @param second Показать секунды
      */
-    void get_time(char buffer[16], unsigned long time, bool day = false, bool hour = true, bool minute = true, bool second = true);
+    void get_time(char buffer[16], unsigned long time, bool day = false, bool hour = true, bool minute = true,
+                  bool second = true);
 }
 
 #endif //PJCAN_TOOLS_CLOCK_H

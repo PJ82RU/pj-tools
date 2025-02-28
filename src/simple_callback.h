@@ -3,17 +3,19 @@
 
 #include <Arduino.h>
 
-namespace tools {
-    class SimpleCallback {
+namespace tools
+{
+    class SimpleCallback
+    {
     public:
-        typedef void (*event_receive_t)(void *, void *);
+        typedef void (*event_receive_t)(void*, void*);
 
         /**
          * Простая реализация обратного вызова
          * @param cb Функция обратного вызова
          * @param p_parameters Значение, которое передается в качестве параметра функции обратного вызова
          */
-        SimpleCallback(event_receive_t cb, void *p_parameters);
+        SimpleCallback(event_receive_t cb, void* p_parameters);
         SimpleCallback();
 
         /**
@@ -21,7 +23,7 @@ namespace tools {
          * @param cb Функция
          * @param p_parameters Параметры передаваемые в функцию
          */
-        void set(event_receive_t cb, void *p_parameters);
+        void set(event_receive_t cb, void* p_parameters);
 
         /** Очистить параметры */
         void free();
@@ -30,13 +32,13 @@ namespace tools {
          * Вызвать функцию обратного вызова
          * @param p_value Передаваемые значения
          */
-        void call(void *p_value);
+        void call(void* p_value) const;
 
     protected:
         /** Функция обратного вызова */
         event_receive_t cb_receive = nullptr;
         /** Параметры передаваемые в функцию обратного вызова */
-        void *p_receive_parameters = nullptr;
+        void* p_receive_parameters = nullptr;
     };
 }
 
