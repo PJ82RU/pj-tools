@@ -3,8 +3,7 @@
 
 #include <Arduino.h>
 
-namespace tools
-{
+namespace tools {
     /**
      * Конвертировать байты в строку HEX
      * @param bytes Массив байт
@@ -21,7 +20,7 @@ namespace tools
      * @param size Размер массива
      * @return Результат выполнения
      */
-    bool hex2bytes(String& hex, uint8_t bytes[], size_t size);
+    bool hex2bytes(String &hex, uint8_t bytes[], size_t size);
 
     /**
      * Конвертировать байты в число HEX
@@ -37,7 +36,7 @@ namespace tools
      * @param size Размер буфера
      * @return Результат сравнения
      */
-    bool compare(const uint8_t* buf1, const uint8_t* buf2, size_t size);
+    bool compare(const uint8_t *buf1, const uint8_t *buf2, size_t size);
 
     /**
      * Поменять байты местами в двух байтовом числе uint16_t

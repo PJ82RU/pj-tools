@@ -1,44 +1,35 @@
 #include "queue.h"
 
-namespace tools
-{
-    Queue::Queue(const UBaseType_t queue_length, const UBaseType_t item_size)
-    {
+namespace tools {
+    Queue::Queue(UBaseType_t queue_length, UBaseType_t item_size) {
         handle = xQueueCreate(queue_length, item_size);
     }
 
-    Queue::~Queue()
-    {
+    Queue::~Queue() {
         vQueueDelete(handle);
     }
 
-    unsigned int Queue::messages_waiting() const
-    {
+    unsigned int Queue::messages_waiting() {
         return uxQueueMessagesWaiting(handle);
     }
 
-    unsigned int Queue::spaces_available() const
-    {
+    unsigned int Queue::spaces_available() {
         return uxQueueSpacesAvailable(handle);
     }
 
-    bool Queue::send(const void* p_item_to_queue, const TickType_t ticks_to_wait) const
-    {
+    bool Queue::send(const void *p_item_to_queue, TickType_t ticks_to_wait) {
         return xQueueSend(handle, p_item_to_queue, ticks_to_wait) == pdTRUE;
     }
 
-    bool Queue::overwrite(const void* p_item_to_queue) const
-    {
+    bool Queue::overwrite(const void *p_item_to_queue) {
         return xQueueOverwrite(handle, p_item_to_queue) == pdTRUE;
     }
 
-    bool Queue::receive(void* p_buffer, const TickType_t ticks_to_wait) const
-    {
+    bool Queue::receive(void *p_buffer, TickType_t ticks_to_wait) {
         return xQueueReceive(handle, p_buffer, ticks_to_wait) == pdTRUE;
     }
 
-    void Queue::reset() const
-    {
+    void Queue::reset() {
         xQueueReset(handle);
     }
 }
