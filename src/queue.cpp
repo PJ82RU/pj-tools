@@ -22,17 +22,17 @@ namespace tools
         return uxQueueSpacesAvailable(handle);
     }
 
-    bool Queue::send(const void* p_item_to_queue, const TickType_t ticks_to_wait) const
+    bool Queue::send(const void* p_item_to_queue, const TickType_t ticks_to_wait)
     {
         return xQueueSend(handle, p_item_to_queue, ticks_to_wait) == pdTRUE;
     }
 
-    bool Queue::overwrite(const void* p_item_to_queue) const
+    bool Queue::overwrite(const void* p_item_to_queue)
     {
         return xQueueOverwrite(handle, p_item_to_queue) == pdTRUE;
     }
 
-    bool Queue::receive(void* p_buffer, const TickType_t ticks_to_wait) const
+    bool Queue::receive(void* p_buffer, const TickType_t ticks_to_wait)
     {
         return xQueueReceive(handle, p_buffer, ticks_to_wait) == pdTRUE;
     }
