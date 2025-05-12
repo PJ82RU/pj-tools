@@ -23,6 +23,7 @@ namespace tools
         _type = type;
         _step = 0;
         _ms = 0;
+        log_i("Change LED state to %d", type);
     }
 
     void Led::handle(unsigned long ms)
