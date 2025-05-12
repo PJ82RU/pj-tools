@@ -1,5 +1,5 @@
-#ifndef PJCAN_TOOLS_CALLBACK_H
-#define PJCAN_TOOLS_CALLBACK_H
+#ifndef PJ_TOOLS_CALLBACK_H
+#define PJ_TOOLS_CALLBACK_H
 
 #include "thread.h"
 #include "semaphore.h"
@@ -116,4 +116,4 @@ namespace tools
     };
 }
 
-#endif //PJCAN_TOOLS_CALLBACK_H
+#endif //PJ_TOOLS_CALLBACK_H

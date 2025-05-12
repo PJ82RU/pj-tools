@@ -1,5 +1,5 @@
-#ifndef PJCAN_TOOLS_BYTES_H
-#define PJCAN_TOOLS_BYTES_H
+#ifndef PJ_TOOLS_BYTES_H
+#define PJ_TOOLS_BYTES_H
 
 #include <Arduino.h>
 
@@ -47,4 +47,4 @@ namespace tools
     uint16_t byte_swap(uint16_t value);
 }
 
-#endif //PJCAN_TOOLS_BYTES_H
+#endif //PJ_TOOLS_BYTES_H

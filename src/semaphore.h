@@ -1,5 +1,5 @@
-#ifndef PJCAN_TOOLS_SEMAPHORE_H
-#define PJCAN_TOOLS_SEMAPHORE_H
+#ifndef PJ_TOOLS_SEMAPHORE_H
+#define PJ_TOOLS_SEMAPHORE_H
 
 #include <Arduino.h>
 
@@ -55,4 +55,4 @@ namespace tools
     };
 }
 
-#endif //PJCAN_TOOLS_SEMAPHORE_H
+#endif //PJ_TOOLS_SEMAPHORE_H

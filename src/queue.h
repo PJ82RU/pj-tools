@@ -1,5 +1,5 @@
-#ifndef PJCAN_TOOLS_QUEUE_H
-#define PJCAN_TOOLS_QUEUE_H
+#ifndef PJ_TOOLS_QUEUE_H
+#define PJ_TOOLS_QUEUE_H
 
 #include <Arduino.h>
 
@@ -53,4 +53,4 @@ namespace tools
     };
 }
 
-#endif //PJCAN_TOOLS_QUEUE_H
+#endif //PJ_TOOLS_QUEUE_H

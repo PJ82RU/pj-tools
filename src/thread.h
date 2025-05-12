@@ -1,5 +1,5 @@
-#ifndef PJCAN_FIRMWARE_THREAD_H
-#define PJCAN_FIRMWARE_THREAD_H
+#ifndef PJ_FIRMWARE_THREAD_H
+#define PJ_FIRMWARE_THREAD_H
 
 #include <Arduino.h>
 
@@ -63,4 +63,4 @@ protected:
     UBaseType_t priority = 0;
 };
 
-#endif //PJCAN_FIRMWARE_THREAD_H
+#endif //PJ_FIRMWARE_THREAD_H

@@ -1,5 +1,5 @@
-#ifndef PJCAN_TOOLS_CLOCK_H
-#define PJCAN_TOOLS_CLOCK_H
+#ifndef PJ_TOOLS_CLOCK_H
+#define PJ_TOOLS_CLOCK_H
 
 #include <Arduino.h>
 
@@ -18,4 +18,4 @@ namespace tools
                   bool second = true);
 }
 
-#endif //PJCAN_TOOLS_CLOCK_H
+#endif //PJ_TOOLS_CLOCK_H
