@@ -12,7 +12,7 @@ namespace tools
      * @param upper_case Строка HEX в верхнем регистре
      * @return Строка HEX
      */
-    String bytes2hex(uint8_t bytes[], size_t size, bool upper_case = true);
+    String bytes2hex(const uint8_t bytes[], size_t size, bool upper_case = true);
 
     /**
      * Конвертировать строку HEX в байты
@@ -21,14 +21,7 @@ namespace tools
      * @param size Размер массива
      * @return Результат выполнения
      */
-    bool hex2bytes(String& hex, uint8_t bytes[], size_t size);
-
-    /**
-     * Конвертировать байты в число HEX
-     * @param byte Байт
-     * @return Число
-     */
-    long byte2hex(uint8_t byte);
+    bool hex2bytes(const String& hex, uint8_t bytes[], size_t size);
 
     /**
      * Сравнить два массива данных
