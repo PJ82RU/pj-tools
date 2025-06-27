@@ -135,7 +135,7 @@ namespace tools
                 {
                     if (it.func(&buffer_[pos], it.params))
                     {
-                        parent_callback_.invoke(&buffer_[pos]);
+                        parent_callback.invoke(&buffer_[pos]);
                     }
                 }
             }

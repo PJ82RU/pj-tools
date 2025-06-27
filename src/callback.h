@@ -26,6 +26,8 @@ namespace tools
             uint8_t buffer_index;
         };
 
+        SimpleCallback parent_callback;
+
         /**
          * @brief Конструктор callback менеджера
          * @param buffer_size Количество элементов буфера
@@ -90,7 +92,6 @@ namespace tools
 
         Thread thread_;
         Queue queue_;
-        SimpleCallback parent_callback_;
         Semaphore semaphore_;
 
         uint8_t num_items_ = 0;
