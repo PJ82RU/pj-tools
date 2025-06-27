@@ -3,54 +3,58 @@
 
 #include <Arduino.h>
 
-namespace tools {
-    /** Тип работы светодиода */
-    typedef enum led_t
+namespace tools
+{
+    enum class LedMode
     {
-        LED_OFF = 0, // Светодиод не горит
-        LED_LIGHT = 1, // Светодиод горит
-        LED_BLINK = 2, // Светодиод мигает с указанным интервалом
-        LED_DOUBLE_BLINK = 3, // Двойное мигание светодиодом, с указанным интервалом
-        LED_TRIPLE_BLINK = 4 // Тройное мигание светодиодом, с указанным интервалом
-    } led_t;
+        Off, // Светодиод выключен
+        On, // Светодиод включен
+        Blink, // Одиночное мигание
+        DoubleBlink, // Двойное мигание
+        TripleBlink // Тройное мигание
+    };
 
-    class Led {
-        public:
-        /** Интервал мигания LED, мс */
-        uint16_t blink = 500;
-        /** Состояние светодиода: true - включен, false - выключен */
-        bool state = false;
+    class Led
+    {
+    public:
+        /**
+         * @brief Конструктор LED
+         * @param pin Пин светодиода (GPIO_NUM_NC если не используется)
+         */
+        explicit Led(gpio_num_t pin = GPIO_NUM_NC) noexcept;
 
         /**
-         * Управление светодиодом устройства
-         * @param gpio_led Пин светодиода
+         * @brief Инициализировать/изменить пин светодиода
+         * @param pin Номер GPIO пина
          */
-        explicit Led(gpio_num_t gpio_led = GPIO_NUM_NC);
+        void init(gpio_num_t pin) noexcept;
 
         /**
-         * Инициализировать светодиод
-         * @param gpio_led Пин светодиода
+         * @brief Установить режим работы
+         * @param mode Режим работы светодиода
          */
-        void set(gpio_num_t gpio_led);
+        void setMode(LedMode mode) noexcept;
 
         /**
-         * Изменить тип работы светодиода
-         * @param type Тип
+         * @brief Обновить состояние светодиода
+         * @param current_time Текущее время (мс). Если 0 - используется millis()
          */
-        void set_type(led_t type);
+        void update(uint32_t current_time = 0) noexcept;
 
-        /** Обработчик мигания светодиода */
-        void handle(unsigned long ms = 0);
+        // Конфигурация
+        uint16_t blink_interval = 500; // Интервал мигания (мс)
 
-    protected:
-        /** Пин светодиода */
-        gpio_num_t _pin = GPIO_NUM_NC;
-        /** Тип работы светодиода */
-        led_t _type = led_t::LED_OFF;
-        /** Текущий шаг состояния светодиода */
-        uint8_t _step = 0;
-        unsigned long _ms = 0;
+        // Состояние
+        bool is_on = false; // Текущее состояние (вкл/выкл)
+
+    private:
+        gpio_num_t pin_ = GPIO_NUM_NC;
+        LedMode mode_ = LedMode::Off;
+        uint8_t step_ = 0;
+        uint32_t next_update_ = 0;
+
+        void updateOutput() const noexcept;
     };
 }
 
-#endif //PJ_TOOLS_LED_H
+#endif // PJ_TOOLS_LED_H

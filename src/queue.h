@@ -9,48 +9,66 @@ namespace tools
     {
     public:
         /**
-         * Обвертка Управление очередью (по мере необходимости будут добавляться др. методы)
-         * @param queue_length Максимальное количество элементов, которое может находиться в очереди
-         * @param item_size Размер (в байтах), необходимый для хранения каждого элемента в очереди
+         * @brief Создает очередь FreeRTOS
+         * @param queue_length Максимальное количество элементов
+         * @param item_size Размер каждого элемента в байтах
+         * @throws std::runtime_error Если не удалось создать очередь
          */
         Queue(UBaseType_t queue_length, UBaseType_t item_size);
-        ~Queue();
 
-        /** Возвращает количество сообщений, хранящихся в очереди */
-        unsigned int messages_waiting() const;
+        ~Queue() noexcept;
 
-        /** Возвращает количество свободных мест в очереди */
-        unsigned int spaces_available() const;
+        // Запрет копирования
+        Queue(const Queue&) = delete;
+        Queue& operator=(const Queue&) = delete;
 
-        /**
-         * Отправить элемент в очередь
-         * @param p_item_to_queue Указатель на элемент, который должен быть помещен в очередь
-         * @param ticks_to_wait Максимальное количество времени, на которое задача должна блокироваться в ожидании освобождения места в очереди
-         * @return Результат выполнения
-         */
-        bool send(const void* p_item_to_queue, TickType_t ticks_to_wait = 0);
+        // Поддержка перемещения
+        Queue(Queue&& other) noexcept;
+        Queue& operator=(Queue&& other) noexcept;
 
         /**
-         * Отправить элемент в очередь перезаписывая данные, которые уже в очереди
-         * @param p_item_to_queue Указатель на элемент, который должен быть помещен в очередь
-         * @return Результат выполнения
+         * @brief Количество элементов в очереди
          */
-        bool overwrite(const void* p_item_to_queue);
+        [[nodiscard]] UBaseType_t messages_waiting() const noexcept;
 
         /**
-         * Получить элемент из очереди
-         * @param p_buffer Указатель на буфер, в который будет скопирован полученный элемент
-         * @param ticks_to_wait Максимальное время, на которое задача должна быть заблокирована в ожидании получения элемента
-         * @return Результат выполнения
+         * @brief Количество свободных мест в очереди
          */
-        bool receive(void* p_buffer, TickType_t ticks_to_wait = portMAX_DELAY);
+        [[nodiscard]] UBaseType_t spaces_available() const noexcept;
 
-        /** Сбрасывает очередь в исходное пустое состояние */
-        void reset() const;
+        /**
+         * @brief Отправить элемент в очередь
+         * @param item Указатель на данные для отправки
+         * @param ticks_to_wait Время ожидания (по умолчанию не ждать)
+         * @return true если успешно, false при ошибке или таймауте
+         */
+        [[nodiscard]] bool send(const void* item, TickType_t ticks_to_wait = 0) const noexcept;
 
-    protected:
-        QueueHandle_t handle;
+        /**
+         * @brief Перезаписать элемент в очереди (для очередей длиной 1)
+         * @param item Указатель на данные для отправки
+         * @return true если успешно
+         */
+        [[nodiscard]] bool overwrite(const void* item) const noexcept;
+
+        /**
+         * @brief Получить элемент из очереди
+         * @param buffer Буфер для принятых данных
+         * @param ticks_to_wait Время ожидания (по умолчанию ждать вечно)
+         * @return true если успешно, false при ошибке или таймауте
+         */
+        [[nodiscard]] bool receive(void* buffer, TickType_t ticks_to_wait = portMAX_DELAY) const noexcept;
+
+        /**
+         * @brief Очистить очередь
+         */
+        void reset() const noexcept;
+
+    private:
+        QueueHandle_t handle_ = nullptr;
+
+        void cleanup() noexcept;
     };
 }
 
-#endif //PJ_TOOLS_QUEUE_H
+#endif // PJ_TOOLS_QUEUE_H

@@ -1,106 +1,86 @@
 #include "thread.h"
+#include <esp_log.h>
 
-Thread::Thread(const char* pc_name, const uint32_t us_stack_depth, const UBaseType_t ux_priority)
+Thread::Thread(const char* name, const uint32_t stack_depth, const UBaseType_t priority) noexcept
+    : stack_depth_(stack_depth), priority_(priority)
 {
-    size_t len = strlen(pc_name);
-    if (len >= sizeof(name))
-    {
-        len = sizeof(name) - 1;
-        name[len] = 0;
-    }
-    memcpy(name, pc_name, len);
-
-    stack_depth = us_stack_depth;
-    priority = ux_priority;
+    const size_t len = std::min(strlen(name), THREAD_NAME_SIZE - 1);
+    memcpy(name_, name, len);
+    name_[len] = '\0';
 }
 
-Thread::~Thread()
+Thread::~Thread() noexcept
 {
     stop();
 }
 
-bool Thread::start(const TaskFunction_t pv_task_code, void* pv_parameters)
+bool Thread::start(const TaskFunction_t task_func, void* params) noexcept
 {
-    bool result = true;
-    if (!task)
+    if (handle_) return false;
+
+    if (xTaskCreate(task_func, name_, stack_depth_, params, priority_, &handle_) == pdPASS)
     {
-        if (xTaskCreate(pv_task_code, name, stack_depth, pv_parameters, priority, &task) == pdPASS)
-        {
-            log_i("Task %s created", name);
-        }
-        else
-        {
-            result = false;
-            log_i("Task %s not created", name);
-        }
+        ESP_LOGI("Thread", "Task %s created", name_);
+        return true;
     }
-    return result;
+
+    ESP_LOGE("Thread", "Failed to create task %s", name_);
+    return false;
 }
 
-bool Thread::start(const TaskFunction_t pv_task_code, void* pv_parameters, const BaseType_t xCoreID)
+bool Thread::start(const TaskFunction_t task_func, void* params, const BaseType_t core_id) noexcept
 {
-    bool result = true;
-    if (!task)
+    if (handle_) return false;
+
+    if (xTaskCreatePinnedToCore(task_func, name_, stack_depth_, params, priority_, &handle_, core_id) == pdPASS)
     {
-        if (xTaskCreatePinnedToCore(pv_task_code, name, stack_depth, pv_parameters, priority, &task, xCoreID) ==
-            pdPASS)
-        {
-            log_i("Task %s created", name);
-        }
-        else
-        {
-            result = false;
-            log_i("Task %s not created", name);
-        }
+        ESP_LOGI("Thread", "Task %s created on core %d", name_, core_id);
+        return true;
     }
-    return result;
+
+    ESP_LOGE("Thread", "Failed to create task %s on core %d", name_, core_id);
+    return false;
 }
 
-void Thread::stop()
+void Thread::stop() noexcept
 {
-    if (task)
+    if (handle_)
     {
-        vTaskDelete(task);
-        task = nullptr;
-        log_i("Task %s deleted", name);
+        vTaskDelete(handle_);
+        handle_ = nullptr;
+        ESP_LOGI("Thread", "Task %s deleted", name_);
     }
 }
 
-//TaskStatus_t Thread::status() const {
-//    TaskStatus_t details;
-//    vTaskGetInfo(task, &details, pdTRUE, eInvalid);
-//    return details;
-//}
-
-bool Thread::is_started() const
+bool Thread::is_running() const noexcept
 {
-    return task != nullptr;
+    return handle_ != nullptr;
 }
 
-void Thread::suspend() const
+void Thread::suspend() const noexcept
 {
-    if (task)
+    if (handle_)
     {
-        vTaskSuspend(task);
-        log_i("Task %s is suspended", name);
+        vTaskSuspend(handle_);
+        ESP_LOGI("Thread", "Task %s suspended", name_);
     }
 }
 
-void Thread::resume() const
+void Thread::resume() const noexcept
 {
-    if (task)
+    if (handle_)
     {
-        vTaskResume(task);
-        log_i("Task %s has been resumed", name);
+        vTaskResume(handle_);
+        ESP_LOGI("Thread", "Task %s resumed", name_);
     }
 }
 
-uint32_t Thread::get_stack_depth() const
+uint32_t Thread::stack_size() const noexcept
 {
-    return stack_depth;
+    return stack_depth_;
 }
 
-UBaseType_t Thread::task_stack_depth() const
+UBaseType_t Thread::stack_high_water_mark() const noexcept
 {
-    return task ? uxTaskGetStackHighWaterMark(task) : 0;
+    return handle_ ? uxTaskGetStackHighWaterMark(handle_) : 0;
 }

@@ -2,65 +2,79 @@
 #define PJ_FIRMWARE_THREAD_H
 
 #include <Arduino.h>
+#include <cstring>
 
-#define THREAD_NAME_SIZE    32
+constexpr size_t THREAD_NAME_SIZE = 32;
 
 class Thread
 {
 public:
     /**
-     * Поток. Обвертка Задачи.
-     * @param pc_name Описательное имя задачи
-     * @param us_stack_depth Количество слов (не байтов!) для использования в качестве стека задачи
-     * @param ux_priority Приоритет, с которым будет выполняться созданная задача
+     * @brief Конструктор потока
+     * @param name Имя задачи (макс 31 символ)
+     * @param stack_depth Размер стека в словах
+     * @param priority Приоритет задачи
      */
-    Thread(const char* pc_name, uint32_t us_stack_depth, UBaseType_t ux_priority);
-    ~Thread();
+    Thread(const char* name, uint32_t stack_depth, UBaseType_t priority) noexcept;
+    ~Thread() noexcept;
+
+    // Запрещаем копирование
+    Thread(const Thread&) = delete;
+    Thread& operator=(const Thread&) = delete;
 
     /**
-     * Запуск потока
-     * @param pv_task_code Указатель на функцию ввода задачи
-     * @param pv_parameters Значение, которое передается в качестве параметра созданной задачи
-     * @return Результат выполнения
+     * @brief Запуск задачи на любом ядре
+     * @param task_func Функция задачи
+     * @param params Параметры задачи
+     * @return true если задача успешно создана
      */
-    bool start(TaskFunction_t pv_task_code, void* pv_parameters);
+    bool start(TaskFunction_t task_func, void* params) noexcept;
 
     /**
-     * Запуск потока
-     * @param pv_task_code Указатель на функцию ввода задачи
-     * @param pv_parameters Значение, которое передается в качестве параметра созданной задачи
-     * @param xCoreID ID ядра
-     * @return Результат выполнения
+     * @brief Запуск задачи на указанном ядре
+     * @param task_func Функция задачи
+     * @param params Параметры задачи
+     * @param core_id ID ядра (0 или 1)
+     * @return true если задача успешно создана
      */
-    bool start(TaskFunction_t pv_task_code, void* pv_parameters, BaseType_t xCoreID);
+    bool start(TaskFunction_t task_func, void* params, BaseType_t core_id) noexcept;
 
-    /** Остановить поток */
-    void stop();
+    /**
+     * @brief Остановка задачи
+     */
+    void stop() noexcept;
 
-    //    Не поддерживается Arduino
-    //    /** Статус задачи */
-    //    TaskStatus_t status() const;
+    /**
+     * @brief Проверка активности задачи
+     * @return true если задача запущена
+     */
+    bool is_running() const noexcept;
 
-    /** Поток запущен */
-    bool is_started() const;
+    /**
+     * @brief Приостановка задачи
+     */
+    void suspend() const noexcept;
 
-    /** Приостановить поток */
-    void suspend() const;
+    /**
+     * @brief Возобновление задачи
+     */
+    void resume() const noexcept;
 
-    /** Возобновить приостановленный поток */
-    void resume() const;
+    /**
+     * @brief Получить размер стека
+     */
+    uint32_t stack_size() const noexcept;
 
-    /** Глубина стека */
-    uint32_t get_stack_depth() const;
+    /**
+     * @brief Получить минимальный остаток стека
+     */
+    UBaseType_t stack_high_water_mark() const noexcept;
 
-    /** Глубина используемого стека */
-    UBaseType_t task_stack_depth() const;
-
-protected:
-    TaskHandle_t task = nullptr;
-    char name[THREAD_NAME_SIZE]{};
-    uint32_t stack_depth = 0;
-    UBaseType_t priority = 0;
+private:
+    TaskHandle_t handle_ = nullptr;
+    char name_[THREAD_NAME_SIZE] = {};
+    uint32_t stack_depth_ = 0;
+    UBaseType_t priority_ = 0;
 };
 
-#endif //PJ_FIRMWARE_THREAD_H
+#endif // PJ_FIRMWARE_THREAD_H

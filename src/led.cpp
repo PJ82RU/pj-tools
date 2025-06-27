@@ -1,93 +1,84 @@
 #include "led.h"
+#include <esp_log.h>
 
 namespace tools
 {
-    Led::Led(const gpio_num_t gpio_led)
+    Led::Led(const gpio_num_t pin) noexcept
     {
-        set(gpio_led);
+        init(pin);
     }
 
-    void Led::set(const gpio_num_t gpio_led)
+    void Led::init(const gpio_num_t pin) noexcept
     {
-        if (_pin == GPIO_NUM_NC && gpio_led != GPIO_NUM_NC)
+        if (pin_ == GPIO_NUM_NC && pin != GPIO_NUM_NC)
         {
-            _pin = gpio_led;
-            pinMode(gpio_led, OUTPUT);
-            digitalWrite(gpio_led, HIGH);
-            log_d("Pin mode OUTPUT for GPIO_LED_WORK = HIGH");
+            pin_ = pin;
+            pinMode(pin_, OUTPUT);
+            digitalWrite(pin_, HIGH);
+            ESP_LOGD("LED", "Initialized pin %d", pin_);
         }
     }
 
-    void Led::set_type(const led_t type)
+    void Led::setMode(const LedMode mode) noexcept
     {
-        _type = type;
-        _step = 0;
-        _ms = 0;
-        log_i("Change LED state to %d", type);
+        mode_ = mode;
+        step_ = 0;
+        next_update_ = 0;
+        updateOutput(); // Немедленное обновление состояния
+        ESP_LOGI("LED", "Mode changed to %d", static_cast<int>(mode));
     }
 
-    void Led::handle(unsigned long ms)
+    void Led::update(uint32_t current_time) noexcept
     {
-        if (ms == 0) ms = millis();
-        if (_ms <= ms)
+        if (pin_ == GPIO_NUM_NC) return;
+
+        if (current_time == 0)
         {
-            uint16_t timeout = blink;
-            if (_pin != GPIO_NUM_NC)
-            {
-                switch (_type)
-                {
-                case LED_LIGHT:
-                    {
-                        digitalWrite(_pin, LOW);
-                        state = true;
-                        log_d("Set pin GPIO_LED_WORK = LOW");
-                        break;
-                    }
-
-                case LED_BLINK:
-                    {
-                        const bool result = _step == 0;
-                        digitalWrite(_pin, result ? LOW : HIGH);
-                        state = result;
-                        _step = result ? 1 : 0;
-                        log_d("Set pin GPIO_LED_WORK = %s", result ? "LOW" : "HIGH");
-                        break;
-                    }
-
-                case LED_DOUBLE_BLINK:
-                    {
-                        const bool result = _step == 0 || _step == 2;
-                        digitalWrite(_pin, result ? LOW : HIGH);
-                        state = result;
-                        _step++;
-                        if (_step > 6) _step = 0;
-                        timeout = blink / 2;
-                        log_d("Set pin GPIO_LED_WORK = %s", result ? "LOW" : "HIGH");
-                        break;
-                    }
-
-                case LED_TRIPLE_BLINK:
-                    {
-                        const bool result = _step == 0 || _step == 2 || _step == 4;
-                        digitalWrite(_pin, result ? LOW : HIGH);
-                        state = result;
-                        _step++;
-                        if (_step > 8) _step = 0;
-                        timeout = blink / 3;
-                        log_d("Set pin GPIO_LED_WORK = %s", result ? "LOW" : "HIGH");
-                        break;
-                    }
-
-                default:
-                    {
-                        digitalWrite(_pin, HIGH);
-                        state = false;
-                        log_d("Set pin GPIO_LED_WORK = HIGH");
-                        break;
-                    }
-                }
-            }
-            _ms = ms + timeout;
+            current_time = millis();
         }
+
+        if (current_time < next_update_)
+        {
+            return;
+        }
+
+        uint16_t timeout = blink_interval;
+
+        switch (mode_)
+        {
+        case LedMode::On:
+            is_on = true;
+            break;
+
+        case LedMode::Blink:
+            is_on = !is_on;
+            step_ = is_on ? 1 : 0;
+            break;
+
+        case LedMode::DoubleBlink:
+            is_on = (step_ % 2) == 0;
+            step_ = (step_ + 1) % 4;
+            timeout = blink_interval / 2;
+            break;
+
+        case LedMode::TripleBlink:
+            is_on = (step_ % 2) == 0;
+            step_ = (step_ + 1) % 6;
+            timeout = blink_interval / 3;
+            break;
+
+        default: // Off
+            is_on = false;
+            break;
+        }
+
+        updateOutput();
+        next_update_ = current_time + timeout;
+    }
+
+    void Led::updateOutput() const noexcept
+    {
+        digitalWrite(pin_, is_on ? LOW : HIGH);
+        ESP_LOGD("LED", "Pin %d set to %s", pin_, is_on ? "LOW" : "HIGH");
     }
 }

@@ -2,27 +2,33 @@
 
 namespace tools
 {
-    SimpleCallback::SimpleCallback(const SimpleCallback::event_receive_t cb, void* p_parameters)
+    SimpleCallback::SimpleCallback(const CallbackFunction callback, void* params) noexcept
+        : callback_(callback), params_(params)
     {
-        set(cb, p_parameters);
     }
 
-    SimpleCallback::SimpleCallback() = default;
-
-    void SimpleCallback::set(const SimpleCallback::event_receive_t cb, void* p_parameters)
+    void SimpleCallback::set(const CallbackFunction callback, void* params) noexcept
     {
-        cb_receive = cb;
-        p_receive_parameters = p_parameters;
+        callback_ = callback;
+        params_ = params;
     }
 
-    void SimpleCallback::free()
+    void SimpleCallback::reset() noexcept
     {
-        cb_receive = nullptr;
-        p_receive_parameters = nullptr;
+        callback_ = nullptr;
+        params_ = nullptr;
     }
 
-    void SimpleCallback::call(void* p_value) const
+    void SimpleCallback::invoke(void* value) const noexcept
     {
-        if (cb_receive) cb_receive(p_value, p_receive_parameters);
+        if (callback_ != nullptr)
+        {
+            callback_(value, params_);
+        }
+    }
+
+    bool SimpleCallback::is_set() const noexcept
+    {
+        return callback_ != nullptr;
     }
 }

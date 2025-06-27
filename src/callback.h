@@ -11,109 +11,96 @@ namespace tools
     class Callback
     {
     public:
-        typedef bool (*event_send_t)(void*, void*);
+        using EventSendFunc = bool (*)(void*, void*);
 
-        typedef struct item_t
+        struct Item
         {
             bool only_index;
-            event_send_t p_item;
-            void* p_parameters;
-        } item_t;
+            EventSendFunc func;
+            void* params;
+        };
 
-        typedef struct buffer_item_t
+        struct BufferItem
         {
-            int16_t index_item;
-            uint8_t index_buffer;
-        } buffer_item_t;
+            int16_t item_index;
+            uint8_t buffer_index;
+        };
 
         /**
-         * Обратный вызов
-         * @param pv_parameters
+         * @brief Конструктор callback менеджера
+         * @param buffer_size Количество элементов буфера
+         * @param item_size Размер элемента буфера
+         * @param name Имя задачи
+         * @param stack_depth Глубина стека (по умолчанию 3072)
+         * @param priority Приоритет задачи (по умолчанию 18)
          */
-        friend void task_callback(void* pv_parameters);
+        Callback(uint8_t buffer_size, size_t item_size, const char* name, uint32_t stack_depth = 3072,
+                 UBaseType_t priority = 18);
 
-        /** Поток */
-        Thread thread;
-        /** Очередь */
-        Queue queue;
-        /** Обратный вызов родителя */
-        SimpleCallback parent_callback;
-
-        /**
-         * Обратный вызов
-         * @param num Количество элементов буфера
-         * @param size Размер элемента буфера
-         * @param t_name Имя задачи
-         * @param t_stack_depth Глубина стека
-         * @param t_priority Приоритет
-         */
-        Callback(uint8_t num, size_t size, const char* t_name, uint32_t t_stack_depth = 3072,
-                 UBaseType_t t_priority = 18);
         ~Callback();
 
+        // Запрещаем копирование
+        Callback(const Callback&) = delete;
+        Callback& operator=(const Callback&) = delete;
+
         /**
-         * Инициализация
-         * @param num Количество функций обратного вызова
-         * @return Результат выполнения
+         * @brief Инициализация callback менеджера
+         * @param num_callbacks Количество callback функций
+         * @return true если инициализация успешна
          */
-        bool init(uint8_t num);
-
-        /** Статус инициализации */
-        bool is_init() const;
+        bool init(uint8_t num_callbacks) noexcept;
 
         /**
-         * Записать функцию обратного вызова
-         * @param item Функция обратного вызова
-         * @param p_parameters Параметры передаваемые в функцию обратного вызова
+         * @brief Проверка инициализации
+         */
+        [[nodiscard]] bool is_initialized() const noexcept;
+
+        /**
+         * @brief Добавить callback функцию
+         * @param func Функция callback
+         * @param params Параметры функции
          * @param only_index Вызывать только по индексу
-         * @return Индекс функции обратного вызова
+         * @return Индекс callback или -1 при ошибке
          */
-        int16_t set(event_send_t item, void* p_parameters = nullptr, bool only_index = false);
-
-        /** Очистить список функций обратного вызова */
-        void clear();
+        int16_t add_callback(EventSendFunc func, void* params = nullptr, bool only_index = false) const noexcept;
 
         /**
-         * Вызвать функцию обратного вызова
-         * @param value Передаваемые значения
-         * @param index Индекс функции обратного вызова
+         * @brief Очистить все callback функции
          */
-        void call(const void* value, int16_t index = -1);
+        void clear() const noexcept;
 
         /**
-         * Чтение значения из буфера
-         * @param value Значение
-         * @return Результат выполнения
+         * @brief Вызвать callback
+         * @param value Данные для передачи
+         * @param index Индекс callback (-1 для всех)
          */
-        bool read(void* value);
-
-    protected:
-        /** Количество функций обратного вызова */
-        uint8_t num_items = 0;
-        /** Список функций обратного вызова */
-        item_t* items = nullptr;
+        void trigger(const void* value, int16_t index = -1) noexcept;
 
         /**
-         * Вызвать функции обратного вызова
-         * @param b_item Индекс функции обратного вызова и индекс данных в буфере
+         * @brief Прочитать данные из буфера
+         * @param value Буфер для данных
+         * @return true если данные прочитаны
          */
-        void call_items(const buffer_item_t& b_item);
-
-        /** Выполнение потока */
-        void handle();
+        bool read_data(void* value) const noexcept;
 
     private:
-        /** Количество элементов буфера */
-        uint8_t num_buffer = 0;
-        /** Размер элемента буфера */
-        size_t size_buffer = 0;
-        /** Позиция в буфере */
-        uint8_t index_buffer = 0;
-        /** Буфер данных */
-        uint8_t* buffer = nullptr;
+        static void callback_task(void* arg) noexcept;
+        void process_items(const BufferItem& item) const noexcept;
+        void run() const noexcept;
 
-        Semaphore semaphore;
+        Thread thread_;
+        Queue queue_;
+        SimpleCallback parent_callback_;
+        Semaphore semaphore_;
+
+        uint8_t num_items_ = 0;
+        Item* items_ = nullptr;
+
+        uint8_t buffer_size_ = 0;
+        size_t item_size_ = 0;
+        uint8_t current_buffer_index_ = 0;
+        uint8_t* buffer_ = nullptr;
     };
 }
 
-#endif //PJ_TOOLS_CALLBACK_H
+#endif // PJ_TOOLS_CALLBACK_H

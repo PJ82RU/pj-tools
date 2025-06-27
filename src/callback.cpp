@@ -1,163 +1,154 @@
 #include "callback.h"
-#include "esp32-hal-log.h"
+#include <esp_log.h>
+#include <cstring>
 
 namespace tools
 {
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
-    void task_callback(void* pv_parameters)
+    Callback::Callback(const uint8_t buffer_size, const size_t item_size, const char* name, const uint32_t stack_depth,
+                       const UBaseType_t priority) :
+        thread_(name, stack_depth, priority),
+        queue_(buffer_size, sizeof(BufferItem)),
+        semaphore_(false)
     {
-        if (pv_parameters)
+        if (buffer_size > 0 && item_size > 0)
         {
-            auto* callback = static_cast<Callback*>(pv_parameters);
-            for (;;) callback->handle();
-        }
-    }
+            buffer_size_ = buffer_size;
+            item_size_ = item_size;
+            buffer_ = new(std::nothrow) uint8_t[buffer_size_ * item_size_];
 
-#pragma clang diagnostic pop
-
-    Callback::Callback(const uint8_t num, const size_t size, const char* t_name, const uint32_t t_stack_depth,
-                       const UBaseType_t t_priority) :
-        thread(t_name, t_stack_depth, t_priority),
-        queue(num, sizeof(buffer_item_t)),
-        semaphore(false)
-    {
-        if (num > 0 && size > 0)
-        {
-            num_buffer = num;
-            size_buffer = size;
-            buffer = new uint8_t[num_buffer * size_buffer];
-            log_i("Callback created");
+            if (buffer_)
+            {
+                ESP_LOGI("Callback", "Initialized with buffer %dx%d", buffer_size_, item_size_);
+                return;
+            }
         }
-        else
-        {
-            log_e("Required parameters are missing");
-        }
+        ESP_LOGE("Callback", "Invalid initialization parameters");
     }
 
     Callback::~Callback()
     {
-        thread.stop();
-        delete[] items;
-        delete[] buffer;
+        thread_.stop();
+        delete[] items_;
+        delete[] buffer_;
     }
 
-    bool Callback::init(const uint8_t num)
+    bool Callback::init(const uint8_t num_callbacks) noexcept
     {
-        bool result = buffer && num_items == 0 && num != 0;
-        if (result)
+        if (buffer_ && num_items_ == 0 && num_callbacks > 0)
         {
-            num_items = num;
-            items = new item_t[num];
-            clear();
-            result = thread.start(&task_callback, this);
-        }
-        return result;
-    }
-
-    bool Callback::is_init() const
-    {
-        return buffer && items;
-    }
-
-    int16_t Callback::set(const event_send_t item, void* p_parameters, const bool only_index)
-    {
-        if (is_init())
-        {
-            for (int16_t i = 0; i < num_items; ++i)
+            items_ = new(std::nothrow) Item[num_callbacks];
+            if (items_)
             {
-                item_t* _item = &items[i];
-                if (!_item->p_item)
+                num_items_ = num_callbacks;
+                clear();
+                return thread_.start(&Callback::callback_task, this);
+            }
+        }
+        return false;
+    }
+
+    bool Callback::is_initialized() const noexcept
+    {
+        return buffer_ && items_;
+    }
+
+    int16_t Callback::add_callback(const EventSendFunc func, void* params, const bool only_index) const noexcept
+    {
+        if (!is_initialized() || !func) return -1;
+
+        if (semaphore_.take())
+        {
+            for (int16_t i = 0; i < num_items_; ++i)
+            {
+                if (!items_[i].func)
                 {
-                    if (semaphore.take())
-                    {
-                        _item->p_item = item;
-                        _item->p_parameters = p_parameters;
-                        _item->only_index = only_index;
-                        log_d("A callback with index %d was recorded", i);
-                        semaphore.give();
-                    }
+                    items_[i] = {only_index, func, params};
+                    (void)semaphore_.give();
+                    ESP_LOGD("Callback", "Added callback at index %d", i);
                     return i;
                 }
             }
-            log_d("There is no free cell to record the callback");
+            (void)semaphore_.give();
         }
-        else
-        {
-            log_d("The object is not initialized");
-        }
+
+        ESP_LOGW("Callback", "No free slots for callback");
         return -1;
     }
 
-    void Callback::clear()
+    void Callback::clear() const noexcept
     {
-        if (is_init() && semaphore.take())
+        if (is_initialized() && semaphore_.take())
         {
-            for (int16_t i = 0; i < num_items; ++i)
-            {
-                item_t* _item = &items[i];
-                _item->p_item = nullptr;
-                _item->p_parameters = nullptr;
-                _item->only_index = false;
-            }
-            log_d("Clearing all cells");
-            semaphore.give();
-        }
-        else
-        {
-            log_d("The object is not initialized");
+            std::memset(items_, 0, sizeof(Item) * num_items_);
+            (void)semaphore_.give();
+            ESP_LOGD("Callback", "Cleared all callbacks");
         }
     }
 
-    void Callback::call(const void* value, const int16_t index)
+    void Callback::trigger(const void* value, const int16_t index) noexcept
     {
-        if (buffer && value && semaphore.take())
-        {
-            memcpy(&buffer[index_buffer * size_buffer], value, size_buffer);
-            buffer_item_t b_item{};
-            b_item.index_item = index;
-            b_item.index_buffer = index_buffer;
+        if (!buffer_ || !value || !semaphore_.take()) return;
 
-            index_buffer++;
-            if (index_buffer >= num_buffer) index_buffer = 0;
+        std::memcpy(&buffer_[current_buffer_index_ * item_size_], value, item_size_);
 
-            queue.send(&b_item);
-            log_d("Calling the callback function");
-            semaphore.give();
-        }
+        const BufferItem item{index, current_buffer_index_};
+        current_buffer_index_ = (current_buffer_index_ + 1) % buffer_size_;
+
+        (void)queue_.send(&item);
+        (void)semaphore_.give();
     }
 
-    bool Callback::read(void* value)
+    bool Callback::read_data(void* value) const noexcept
     {
-        bool result = false;
-        if (buffer && value && semaphore.take())
+        if (!buffer_ || !value || !semaphore_.take()) return false;
+
+        BufferItem item{};
+        const bool result = queue_.receive(&item, 0);
+        if (result)
         {
-            buffer_item_t buf{};
-            result = queue.receive(&buf, 0);
-            if (result) memcpy(value, &buffer[buf.index_buffer * size_buffer], size_buffer);
-            semaphore.give();
+            std::memcpy(value, &buffer_[item.buffer_index * item_size_], item_size_);
         }
+
+        (void)semaphore_.give();
         return result;
     }
 
-    void Callback::call_items(const buffer_item_t& b_item)
+    void Callback::callback_task(void* arg) noexcept
     {
-        const size_t pos = b_item.index_buffer * size_buffer;
-        for (uint8_t i = 0; i < num_items; ++i)
+        const auto* cb = static_cast<Callback*>(arg);
+        if (cb)
         {
-            const item_t* _item = &items[i];
-            if (_item->p_item && (!_item->only_index || _item->only_index && b_item.index_item == i))
-            {
-                const bool response = _item->p_item(&buffer[pos], _item->p_parameters);
-                if (response) parent_callback.call(&buffer[pos]);
-            }
+            cb->run();
         }
     }
 
-    void Callback::handle()
+    void Callback::process_items(const BufferItem& item) const noexcept
     {
-        tools::Callback::buffer_item_t b_item;
-        if (queue.receive(&b_item, portMAX_DELAY)) call_items(b_item);
+        const size_t pos = item.buffer_index * item_size_;
+
+        if (semaphore_.take())
+        {
+            for (uint8_t i = 0; i < num_items_; ++i)
+            {
+                const Item& it = items_[i];
+                if (it.func && (!it.only_index || it.only_index && item.item_index == i))
+                {
+                    if (it.func(&buffer_[pos], it.params))
+                    {
+                        parent_callback_.invoke(&buffer_[pos]);
+                    }
+                }
+            }
+            (void)semaphore_.give();
+        }
+    }
+
+    void Callback::run() const noexcept
+    {
+        BufferItem item{};
+        while (queue_.receive(&item, portMAX_DELAY))
+        {
+            process_items(item);
+        }
     }
 }

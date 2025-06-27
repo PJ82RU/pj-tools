@@ -1,44 +1,71 @@
 #include "queue.h"
+#include <stdexcept>
 
 namespace tools
 {
     Queue::Queue(const UBaseType_t queue_length, const UBaseType_t item_size)
     {
-        handle = xQueueCreate(queue_length, item_size);
+        handle_ = xQueueCreate(queue_length, item_size);
+        if (handle_ == nullptr) {
+            throw std::runtime_error("Failed to create queue");
+        }
     }
 
-    Queue::~Queue()
+    Queue::~Queue() noexcept
     {
-        vQueueDelete(handle);
+        cleanup();
     }
 
-    unsigned int Queue::messages_waiting() const
+    Queue::Queue(Queue&& other) noexcept :
+        handle_(other.handle_)
+    {}
+
+    Queue& Queue::operator=(Queue&& other) noexcept
     {
-        return uxQueueMessagesWaiting(handle);
+        if (this != &other) {
+            cleanup();
+            handle_ = other.handle_;
+        }
+        return *this;
     }
 
-    unsigned int Queue::spaces_available() const
+    void Queue::cleanup() noexcept
     {
-        return uxQueueSpacesAvailable(handle);
+        if (handle_) {
+            vQueueDelete(handle_);
+            handle_ = nullptr;
+        }
     }
 
-    bool Queue::send(const void* p_item_to_queue, const TickType_t ticks_to_wait)
+    UBaseType_t Queue::messages_waiting() const noexcept
     {
-        return xQueueSend(handle, p_item_to_queue, ticks_to_wait) == pdTRUE;
+        return handle_ ? uxQueueMessagesWaiting(handle_) : 0;
     }
 
-    bool Queue::overwrite(const void* p_item_to_queue)
+    UBaseType_t Queue::spaces_available() const noexcept
     {
-        return xQueueOverwrite(handle, p_item_to_queue) == pdTRUE;
+        return handle_ ? uxQueueSpacesAvailable(handle_) : 0;
     }
 
-    bool Queue::receive(void* p_buffer, const TickType_t ticks_to_wait)
+    bool Queue::send(const void* item, const TickType_t ticks_to_wait) const noexcept
     {
-        return xQueueReceive(handle, p_buffer, ticks_to_wait) == pdTRUE;
+        return handle_ && (xQueueSend(handle_, item, ticks_to_wait) == pdTRUE);
     }
 
-    void Queue::reset() const
+    bool Queue::overwrite(const void* item) const noexcept
     {
-        xQueueReset(handle);
+        return handle_ && (xQueueOverwrite(handle_, item) == pdTRUE);
+    }
+
+    bool Queue::receive(void* buffer, const TickType_t ticks_to_wait) const noexcept
+    {
+        return handle_ && (xQueueReceive(handle_, buffer, ticks_to_wait) == pdTRUE);
+    }
+
+    void Queue::reset() const noexcept
+    {
+        if (handle_) {
+            xQueueReset(handle_);
+        }
     }
 }

@@ -1,45 +1,48 @@
 #ifndef PJ_TOOLS_SIMPLE_CALLBACK_H
 #define PJ_TOOLS_SIMPLE_CALLBACK_H
 
-#include <Arduino.h>
-
 namespace tools
 {
     class SimpleCallback
     {
     public:
-        typedef void (*event_receive_t)(void*, void*);
+        using CallbackFunction = void (*)(void* value, void* params);
 
         /**
-         * Простая реализация обратного вызова
-         * @param cb Функция обратного вызова
-         * @param p_parameters Значение, которое передается в качестве параметра функции обратного вызова
+         * @brief Конструктор с инициализацией callback
+         * @param callback Функция обратного вызова
+         * @param params Параметры для callback (может быть nullptr)
          */
-        SimpleCallback(event_receive_t cb, void* p_parameters);
-        SimpleCallback();
+        explicit SimpleCallback(CallbackFunction callback = nullptr, void* params = nullptr) noexcept;
 
         /**
-         * Записать параметры обратного вызова
-         * @param cb Функция
-         * @param p_parameters Параметры передаваемые в функцию
+         * @brief Установка callback функции и параметров
+         * @param callback Функция обратного вызова (может быть nullptr)
+         * @param params Параметры для callback (может быть nullptr)
          */
-        void set(event_receive_t cb, void* p_parameters);
-
-        /** Очистить параметры */
-        void free();
+        void set(CallbackFunction callback, void* params) noexcept;
 
         /**
-         * Вызвать функцию обратного вызова
-         * @param p_value Передаваемые значения
+         * @brief Сброс callback функции и параметров
          */
-        void call(void* p_value) const;
+        void reset() noexcept;
 
-    protected:
-        /** Функция обратного вызова */
-        event_receive_t cb_receive = nullptr;
-        /** Параметры передаваемые в функцию обратного вызова */
-        void* p_receive_parameters = nullptr;
+        /**
+         * @brief Вызов callback функции
+         * @param value Значение для передачи в callback
+         */
+        void invoke(void* value) const noexcept;
+
+        /**
+         * @brief Проверка наличия установленного callback
+         * @return true если callback установлен
+         */
+        [[nodiscard]] bool is_set() const noexcept;
+
+    private:
+        CallbackFunction callback_ = nullptr;
+        void* params_ = nullptr;
     };
 }
 
-#endif //PJ_TOOLS_SIMPLE_CALLBACK_H
+#endif // PJ_TOOLS_SIMPLE_CALLBACK_H
