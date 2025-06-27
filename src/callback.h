@@ -76,7 +76,7 @@ namespace tools
          * @param value Данные для передачи
          * @param index Индекс callback (-1 для всех)
          */
-        void trigger(const void* value, int16_t index = -1) noexcept;
+        void invoke(const void* value, int16_t index = -1) noexcept;
 
         /**
          * @brief Прочитать данные из буфера

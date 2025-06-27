@@ -85,7 +85,7 @@ namespace tools
         }
     }
 
-    void Callback::trigger(const void* value, const int16_t index) noexcept
+    void Callback::invoke(const void* value, const int16_t index) noexcept
     {
         if (!buffer_ || !value || !semaphore_.take()) return;
 
