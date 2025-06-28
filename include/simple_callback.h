@@ -1,18 +1,22 @@
 #ifndef PJ_TOOLS_SIMPLE_CALLBACK_H
 #define PJ_TOOLS_SIMPLE_CALLBACK_H
 
-namespace tools
+namespace pj_tools
 {
-    /// @brief Класс для работы с простыми callback-функциями C-стиля
-    ///
-    /// Предоставляет механизм для регистрации и вызова функций обратного вызова
-    /// с возможностью передачи пользовательских параметров
+    /**
+     * @brief Класс для работы с простыми callback-функциями C-стиля
+     *
+     * @details Предоставляет механизм для регистрации и вызова функций обратного вызова
+     *          с возможностью передачи пользовательских параметров
+     */
     class SimpleCallback
     {
     public:
-        /// @brief Тип функции обратного вызова
-        /// @param value Указатель на передаваемые данные
-        /// @param params Указатель на пользовательские параметры
+        /**
+         * @brief Тип функции обратного вызова
+         * @param value Указатель на передаваемые данные
+         * @param params Указатель на пользовательские параметры
+         */
         using CallbackFunction = void (*)(void* value, void* params);
 
         /**
@@ -31,7 +35,7 @@ namespace tools
 
         /**
          * @brief Сброс зарегистрированного callback
-         * @note После вызова is_set() будет возвращать false
+         * @note После вызова isSet() будет возвращать false
          */
         void reset() noexcept;
 
@@ -46,12 +50,15 @@ namespace tools
          * @brief Проверка наличия зарегистрированного callback
          * @return true если callback был установлен и не был сброшен
          */
-        [[nodiscard]] bool is_set() const noexcept;
+        [[nodiscard]] bool isSet() const noexcept;
 
     private:
-        CallbackFunction callback_ = nullptr; ///< Указатель на функцию обратного вызова
-        void* params_ = nullptr; ///< Пользовательские параметры для callback
+        /// Указатель на функцию обратного вызова
+        CallbackFunction mCallback = nullptr;
+
+        /// Пользовательские параметры для callback
+        void* mParams = nullptr;
     };
-}
+} // namespace pj_tools
 
 #endif // PJ_TOOLS_SIMPLE_CALLBACK_H

@@ -6,7 +6,7 @@
 #include "queue.h"
 #include "simple_callback.h"
 
-namespace tools
+namespace pj_tools
 {
     /**
      * @brief Класс для управления callback-функциями с буферизацией данных
@@ -20,16 +20,16 @@ namespace tools
          * @param arg2 Указатель на параметры
          * @return Результат выполнения (true/false)
          */
-        using EventSendFunc = bool (*)(void*, void*);
+        using EventSendFunc = bool (*)(void* arg1, void* arg2);
 
         /**
          * @brief Структура элемента callback
          */
         struct Item
         {
-            bool only_index; ///< Флаг вызова только по индексу
+            bool onlyIndex;     ///< Флаг вызова только по индексу
             EventSendFunc func; ///< Указатель на callback-функцию
-            void* params; ///< Параметры для callback-функции
+            void* params;       ///< Параметры для callback-функции
         };
 
         /**
@@ -37,27 +37,25 @@ namespace tools
          */
         struct BufferItem
         {
-            int16_t item_index; ///< Индекс callback-функции
-            uint8_t buffer_index; ///< Индекс в буфере данных
+            int16_t itemIndex;   ///< Индекс callback-функции
+            uint8_t bufferIndex; ///< Индекс в буфере данных
         };
 
         /**
          * @brief Конструктор менеджера callback-функций
-         * @param buffer_size Количество элементов в буфере
-         * @param item_size Размер одного элемента буфера (в байтах)
+         * @param bufferSize Количество элементов в буфере
+         * @param itemSize Размер одного элемента буфера (в байтах)
          * @param name Имя задачи для отладки
-         * @param stack_depth Размер стека задачи (по умолчанию 3072)
+         * @param stackDepth Размер стека задачи (по умолчанию 3072)
          * @param priority Приоритет задачи (по умолчанию 18)
          */
-        Callback(uint8_t buffer_size,
-                 size_t item_size,
+        Callback(uint8_t bufferSize,
+                 size_t itemSize,
                  const char* name,
-                 uint32_t stack_depth = 3072,
+                 uint32_t stackDepth = 3072,
                  UBaseType_t priority = 18);
 
-        /**
-         * @brief Деструктор (освобождает ресурсы)
-         */
+        /// @brief Деструктор (освобождает ресурсы)
         ~Callback();
 
         // Запрещаем копирование объектов
@@ -66,25 +64,27 @@ namespace tools
 
         /**
          * @brief Инициализация менеджера callback-функций
-         * @param num_callbacks Количество callback-функций
+         * @param numCallbacks Количество callback-функций
          * @return true если инициализация прошла успешно
          */
-        bool init(uint8_t num_callbacks) noexcept;
+        [[nodiscard]] bool init(uint8_t numCallbacks) noexcept;
 
         /**
          * @brief Проверка состояния инициализации
          * @return true если объект инициализирован
          */
-        [[nodiscard]] bool is_initialized() const noexcept;
+        [[nodiscard]] bool isInitialized() const noexcept;
 
         /**
          * @brief Добавление новой callback-функции
          * @param func Указатель на callback-функцию
          * @param params Параметры для функции (опционально)
-         * @param only_index Флаг вызова только по индексу (опционально)
+         * @param onlyIndex Флаг вызова только по индексу (опционально)
          * @return Индекс добавленной функции или -1 при ошибке
          */
-        int16_t add_callback(EventSendFunc func, void* params = nullptr, bool only_index = false) const noexcept;
+        [[nodiscard]] int16_t addCallback(EventSendFunc func,
+                                          void* params = nullptr,
+                                          bool onlyIndex = false) const noexcept;
 
         /**
          * @brief Очистка всех зарегистрированных callback-функций
@@ -103,43 +103,56 @@ namespace tools
          * @param value Указатель на буфер для данных
          * @return true если данные успешно прочитаны
          */
-        bool read(void* value) const noexcept;
+        [[nodiscard]] bool read(void* value) const noexcept;
 
-        /**
-         * @brief Родительский callback для обработки событий
-         */
-        SimpleCallback parent_callback;
+        /// Родительский callback для обработки событий
+        SimpleCallback parentCallback;
 
     private:
         /**
          * @brief Задача для обработки callback-функций
          * @param arg Указатель на объект Callback
          */
-        static void callback_task(void* arg) noexcept;
+        static void callbackTask(void* arg) noexcept;
 
         /**
          * @brief Обработка элементов callback
          * @param item Элемент буфера для обработки
          */
-        void process_items(const BufferItem& item) const noexcept;
+        void processItems(const BufferItem& item) const noexcept;
 
         /**
          * @brief Основной цикл обработки
          */
         void run() const noexcept;
 
-        Thread thread_; ///< Поток для обработки callback
-        Queue queue_; ///< Очередь для хранения заданий
-        Semaphore semaphore_; ///< Семафор для синхронизации
+        /// Поток для обработки callback
+        Thread mThread;
 
-        uint8_t num_items_ = 0; ///< Количество зарегистрированных callback-функций
-        Item* items_ = nullptr; ///< Массив callback-функций
+        /// Очередь для хранения заданий
+        Queue mQueue;
 
-        uint8_t buffer_size_ = 0; ///< Размер буфера данных
-        size_t item_size_ = 0; ///< Размер элемента данных
-        uint8_t current_buffer_index_ = 0; ///< Текущий индекс в буфере
-        uint8_t* buffer_ = nullptr; ///< Буфер для хранения данных
+        /// Семафор для синхронизации
+        Semaphore mSemaphore;
+
+        /// Количество зарегистрированных callback-функций
+        uint8_t mNumItems = 0;
+
+        /// Массив callback-функций
+        Item* mItems = nullptr;
+
+        /// Размер буфера данных
+        uint8_t mBufferSize = 0;
+
+        /// Размер элемента данных
+        size_t mItemSize = 0;
+
+        /// Текущий индекс в буфере
+        uint8_t mCurrentBufferIndex = 0;
+
+        /// Буфер для хранения данных
+        uint8_t* mBuffer = nullptr;
     };
-}
+} // namespace pj_tools
 
 #endif // PJ_TOOLS_CALLBACK_H

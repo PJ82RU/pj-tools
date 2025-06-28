@@ -3,25 +3,29 @@
 
 #include <Arduino.h>
 
-namespace tools
+namespace pj_tools
 {
-    /// @brief Перечисление режимов работы светодиода
+    /**
+     * @brief Режимы работы светодиода
+     */
     enum class LedMode
     {
-        Off, ///< Светодиод выключен
-        On, ///< Светодиод включен постоянно
-        Blink, ///< Одиночное мигание (периодическое включение/выключение)
-        DoubleBlink, ///< Двойное мигание (две вспышки с паузой)
-        TripleBlink ///< Тройное мигание (три вспышки с паузой)
+        OFF,          ///< Светодиод выключен
+        ON,           ///< Светодиод включен постоянно
+        BLINK,        ///< Одиночное мигание
+        DOUBLE_BLINK, ///< Двойное мигание
+        TRIPLE_BLINK  ///< Тройное мигание
     };
 
-    /// @brief Класс для управления светодиодом
+    /**
+     * @brief Класс для управления светодиодом
+     */
     class Led
     {
     public:
         /**
          * @brief Конструктор объекта светодиода
-         * @param pin Номер GPIO пина (по умолчанию GPIO_NUM_NC - не используется)
+         * @param pin Номер GPIO пина (по умолчанию GPIO_NUM_NC)
          */
         explicit Led(gpio_num_t pin = GPIO_NUM_NC) noexcept;
 
@@ -39,27 +43,27 @@ namespace tools
 
         /**
          * @brief Обновление состояния светодиода согласно текущему режиму
-         * @param current_time Текущее время в миллисекундах (0 - использовать millis())
+         * @param currentTime Текущее время в миллисекундах (0 - использовать millis())
          */
-        void update(uint32_t current_time = 0) noexcept;
+        void update(uint32_t currentTime = 0) noexcept;
 
-        // Конфигурационные параметры
-        uint16_t blink_interval = 500; ///< Интервал мигания в миллисекундах
-
-        // Текущее состояние
-        bool is_on = false; ///< Флаг текущего состояния светодиода (включен/выключен)
+        /// Интервал мигания в миллисекундах
+        uint16_t blinkInterval = 500;
 
     private:
-        gpio_num_t pin_ = GPIO_NUM_NC; ///< Номер GPIO пина светодиода
-        LedMode mode_ = LedMode::Off; ///< Текущий режим работы
-        uint8_t step_ = 0; ///< Текущий шаг в последовательности мигания
-        uint32_t next_update_ = 0; ///< Время следующего обновления состояния
-
-        /**
-         * @brief Внутренний метод для обновления физического состояния пина
-         */
+        /// Приватные методы
         void updateOutput() const noexcept;
+
+        /// Переменные
+        // Примитивные типы
+        bool mIsOn = false;       ///< Флаг текущего состояния светодиода
+        uint8_t mStep = 0;        ///< Текущий шаг в последовательности мигания
+        uint32_t mNextUpdate = 0; ///< Время следующего обновления состояния
+
+        // Пользовательские типы
+        gpio_num_t mPin = GPIO_NUM_NC; ///< Номер GPIO пина светодиода
+        LedMode mMode = LedMode::OFF;  ///< Текущий режим работы
     };
-}
+} // namespace pj_tools
 
 #endif // PJ_TOOLS_LED_H

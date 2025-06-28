@@ -1,86 +1,91 @@
 #include "thread.h"
+#include <algorithm>
 #include <esp_log.h>
 
-Thread::Thread(const char* name, const uint32_t stack_depth, const UBaseType_t priority) noexcept
-    : stack_depth_(stack_depth), priority_(priority)
+namespace pj_tools
 {
-    const size_t len = std::min(strlen(name), THREAD_NAME_SIZE - 1);
-    memcpy(name_, name, len);
-    name_[len] = '\0';
-}
-
-Thread::~Thread() noexcept
-{
-    stop();
-}
-
-bool Thread::start(const TaskFunction_t task_func, void* params) noexcept
-{
-    if (handle_) return false;
-
-    if (xTaskCreate(task_func, name_, stack_depth_, params, priority_, &handle_) == pdPASS)
+    Thread::Thread(const char* name, const uint32_t stackDepth, const UBaseType_t priority) noexcept
+        : mStackDepth(stackDepth),
+          mPriority(priority)
     {
-        ESP_LOGI("Thread", "Task %s created", name_);
-        return true;
+        const size_t len = std::min(strlen(name), THREAD_NAME_SIZE - 1);
+        memcpy(mName, name, len);
+        mName[len] = '\0';
     }
 
-    ESP_LOGE("Thread", "Failed to create task %s", name_);
-    return false;
-}
-
-bool Thread::start(const TaskFunction_t task_func, void* params, const BaseType_t core_id) noexcept
-{
-    if (handle_) return false;
-
-    if (xTaskCreatePinnedToCore(task_func, name_, stack_depth_, params, priority_, &handle_, core_id) == pdPASS)
+    Thread::~Thread() noexcept
     {
-        ESP_LOGI("Thread", "Task %s created on core %d", name_, core_id);
-        return true;
+        stop();
     }
 
-    ESP_LOGE("Thread", "Failed to create task %s on core %d", name_, core_id);
-    return false;
-}
-
-void Thread::stop() noexcept
-{
-    if (handle_)
+    bool Thread::start(const TaskFunction_t taskFunc, void* params) noexcept
     {
-        vTaskDelete(handle_);
-        handle_ = nullptr;
-        ESP_LOGI("Thread", "Task %s deleted", name_);
+        if (mHandle) return false;
+
+        if (xTaskCreate(taskFunc, mName, mStackDepth, params, mPriority, &mHandle) == pdPASS)
+        {
+            log_i("Task %s created", mName);
+            return true;
+        }
+
+        log_e("Failed to create task %s", mName);
+        return false;
     }
-}
 
-bool Thread::is_running() const noexcept
-{
-    return handle_ != nullptr;
-}
-
-void Thread::suspend() const noexcept
-{
-    if (handle_)
+    bool Thread::start(const TaskFunction_t taskFunc, void* params, const BaseType_t coreId) noexcept
     {
-        vTaskSuspend(handle_);
-        ESP_LOGI("Thread", "Task %s suspended", name_);
-    }
-}
+        if (mHandle) return false;
 
-void Thread::resume() const noexcept
-{
-    if (handle_)
+        if (xTaskCreatePinnedToCore(taskFunc, mName, mStackDepth, params, mPriority, &mHandle, coreId) == pdPASS)
+        {
+            log_i("Task %s created on core %d", mName, coreId);
+            return true;
+        }
+
+        log_e("Failed to create task %s on core %d", mName, coreId);
+        return false;
+    }
+
+    void Thread::stop() noexcept
     {
-        vTaskResume(handle_);
-        ESP_LOGI("Thread", "Task %s resumed", name_);
+        if (mHandle)
+        {
+            vTaskDelete(mHandle);
+            mHandle = nullptr;
+            log_i("Task %s deleted", mName);
+        }
     }
-}
 
-uint32_t Thread::stack_size() const noexcept
-{
-    return stack_depth_;
-}
+    bool Thread::isRunning() const noexcept
+    {
+        return mHandle != nullptr;
+    }
 
-UBaseType_t Thread::stack_high_water_mark() const noexcept
-{
-    return handle_ ? uxTaskGetStackHighWaterMark(handle_) : 0;
-}
+    void Thread::suspend() const noexcept
+    {
+        if (mHandle)
+        {
+            vTaskSuspend(mHandle);
+            log_i("Task %s suspended", mName);
+        }
+    }
+
+    void Thread::resume() const noexcept
+    {
+        if (mHandle)
+        {
+            vTaskResume(mHandle);
+            log_i("Task %s resumed", mName);
+        }
+    }
+
+    uint32_t Thread::stackSize() const noexcept
+    {
+        return mStackDepth;
+    }
+
+    UBaseType_t Thread::stackHighWaterMark() const noexcept
+    {
+        return mHandle ? uxTaskGetStackHighWaterMark(mHandle) : 0;
+    }
+} // namespace pj_tools

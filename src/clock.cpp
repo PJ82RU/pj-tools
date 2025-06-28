@@ -1,81 +1,81 @@
 #include "clock.h"
+#include <cstdio>
+#include <cstring>
 
-namespace tools
+namespace pj_tools
 {
-    void get_time(char* buffer, unsigned long time, const bool day, const bool hour,
-                  const bool minute, const bool second)
+    void formatTime(char* buffer, unsigned long time, const bool showDay,
+                    const bool showHour, const bool showMinute, const bool showSecond) noexcept
     {
-        // Проверка на нулевой указатель буфера
-        if (buffer == nullptr) return;
+        if (buffer == nullptr)
+        {
+            return;
+        }
 
-        // Конвертация времени
-        time /= 1000;
-        const uint8_t countSecond = time % 60;
-        time /= 60;
-        const uint8_t countMinute = time % 60;
-        time /= 60;
-        const uint8_t countHour = time % 24;
-        const uint8_t countDay = time / 24;
+        // Конвертация времени из мс в компоненты
+        time /= 1000; // секунды
+        const uint8_t seconds = time % 60;
+        time /= 60; // минуты
+        const uint8_t minutes = time % 60;
+        time /= 60; // часы
+        const uint8_t hours = time % 24;
+        const uint8_t days = time / 24;
 
-        // Временный буфер для форматирования
-        char temp[8];
-        int pos = 0;
+        char* ptr = buffer;
+        bool needSeparator = false;
 
         // Форматирование дней
-        if (day)
+        if (showDay && days > 0)
         {
-            const int written = snprintf(temp, sizeof(temp), "%d", countDay);
+            const int written = snprintf(ptr, 4, "%u", days);
             if (written > 0)
             {
-                memcpy(buffer + pos, temp, written);
-                pos += written;
-
-                if (hour || minute || second)
+                ptr += written;
+                needSeparator = showHour || showMinute || showSecond;
+                if (needSeparator)
                 {
-                    buffer[pos++] = '.';
+                    *ptr++ = '.';
                 }
             }
         }
 
         // Форматирование часов
-        if (hour)
+        if (showHour)
         {
-            const int written = snprintf(temp, sizeof(temp), "%02d", countHour);
+            const int written = snprintf(ptr, 3, "%02u", hours);
             if (written > 0)
             {
-                memcpy(buffer + pos, temp, written);
-                pos += written;
-
-                if (minute || second)
+                ptr += written;
+                needSeparator = showMinute || showSecond;
+                if (needSeparator)
                 {
-                    buffer[pos++] = ':';
+                    *ptr++ = ':';
                 }
             }
         }
 
         // Форматирование минут
-        if (minute)
+        if (showMinute)
         {
-            const int written = snprintf(temp, sizeof(temp), "%02d", countMinute);
+            const int written = snprintf(ptr, 3, "%02u", minutes);
             if (written > 0)
             {
-                memcpy(buffer + pos, temp, written);
-                pos += written;
-
-                if (second)
+                ptr += written;
+                if (showSecond)
                 {
-                    buffer[pos++] = ':';
+                    *ptr++ = ':';
                 }
             }
         }
 
         // Форматирование секунд
-        if (second)
+        if (showSecond)
         {
-            snprintf(buffer + pos, 3, "%02d", countSecond);
+            snprintf(ptr, 3, "%02u", seconds);
+            ptr += 2;
         }
 
         // Гарантированное завершение строки
-        buffer[pos] = '\0';
+        *ptr = '\0';
     }
-}
+} // namespace pj_tools

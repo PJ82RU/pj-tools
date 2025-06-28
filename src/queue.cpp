@@ -1,15 +1,18 @@
 #include "queue.h"
 #include <stdexcept>
+#include <esp_log.h>
 
-namespace tools
+namespace pj_tools
 {
-    Queue::Queue(const UBaseType_t queue_length, const UBaseType_t item_size)
+    Queue::Queue(const UBaseType_t queueLength, const UBaseType_t itemSize)
     {
-        handle_ = xQueueCreate(queue_length, item_size);
-        if (handle_ == nullptr)
+        mHandle = xQueueCreate(queueLength, itemSize);
+        if (mHandle == nullptr)
         {
+            log_e("Failed to create queue");
             throw std::runtime_error("Failed to create queue");
         }
+        log_d("Queue created, length=%u, itemSize=%u", queueLength, itemSize);
     }
 
     Queue::~Queue() noexcept
@@ -17,9 +20,10 @@ namespace tools
         cleanup();
     }
 
-    Queue::Queue(Queue&& other) noexcept :
-        handle_(other.handle_)
+    Queue::Queue(Queue&& other) noexcept
+        : mHandle(other.mHandle)
     {
+        other.mHandle = nullptr;
     }
 
     Queue& Queue::operator=(Queue&& other) noexcept
@@ -27,50 +31,53 @@ namespace tools
         if (this != &other)
         {
             cleanup();
-            handle_ = other.handle_;
+            mHandle = other.mHandle;
+            other.mHandle = nullptr;
         }
         return *this;
     }
 
     void Queue::cleanup() noexcept
     {
-        if (handle_)
+        if (mHandle)
         {
-            vQueueDelete(handle_);
-            handle_ = nullptr;
+            vQueueDelete(mHandle);
+            mHandle = nullptr;
+            log_d("Queue deleted");
         }
     }
 
-    UBaseType_t Queue::messages_waiting() const noexcept
+    UBaseType_t Queue::messagesWaiting() const noexcept
     {
-        return handle_ ? uxQueueMessagesWaiting(handle_) : 0;
+        return mHandle ? uxQueueMessagesWaiting(mHandle) : 0;
     }
 
-    UBaseType_t Queue::spaces_available() const noexcept
+    UBaseType_t Queue::spacesAvailable() const noexcept
     {
-        return handle_ ? uxQueueSpacesAvailable(handle_) : 0;
+        return mHandle ? uxQueueSpacesAvailable(mHandle) : 0;
     }
 
-    bool Queue::send(const void* item, const TickType_t ticks_to_wait) const noexcept
+    bool Queue::send(const void* item, const TickType_t ticksToWait) const noexcept
     {
-        return handle_ && (xQueueSend(handle_, item, ticks_to_wait) == pdTRUE);
+        return mHandle && (xQueueSend(mHandle, item, ticksToWait) == pdTRUE);
     }
 
     bool Queue::overwrite(const void* item) const noexcept
     {
-        return handle_ && (xQueueOverwrite(handle_, item) == pdTRUE);
+        return mHandle && (xQueueOverwrite(mHandle, item) == pdTRUE);
     }
 
-    bool Queue::receive(void* buffer, const TickType_t ticks_to_wait) const noexcept
+    bool Queue::receive(void* buffer, const TickType_t ticksToWait) const noexcept
     {
-        return handle_ && (xQueueReceive(handle_, buffer, ticks_to_wait) == pdTRUE);
+        return mHandle && (xQueueReceive(mHandle, buffer, ticksToWait) == pdTRUE);
     }
 
     void Queue::reset() const noexcept
     {
-        if (handle_)
+        if (mHandle)
         {
-            xQueueReset(handle_);
+            xQueueReset(mHandle);
+            log_d("Queue reset");
         }
     }
-}
+} // namespace pj_tools

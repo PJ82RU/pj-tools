@@ -1,34 +1,35 @@
 #include "simple_callback.h"
 
-namespace tools
+namespace pj_tools
 {
     SimpleCallback::SimpleCallback(const CallbackFunction callback, void* params) noexcept
-        : callback_(callback), params_(params)
+        : mCallback(callback),
+          mParams(params)
     {
     }
 
     void SimpleCallback::set(const CallbackFunction callback, void* params) noexcept
     {
-        callback_ = callback;
-        params_ = params;
+        mCallback = callback;
+        mParams = params;
     }
 
     void SimpleCallback::reset() noexcept
     {
-        callback_ = nullptr;
-        params_ = nullptr;
+        mCallback = nullptr;
+        mParams = nullptr;
     }
 
     void SimpleCallback::invoke(void* value) const noexcept
     {
-        if (callback_ != nullptr)
+        if (mCallback != nullptr)
         {
-            callback_(value, params_);
+            mCallback(value, mParams);
         }
     }
 
-    bool SimpleCallback::is_set() const noexcept
+    bool SimpleCallback::isSet() const noexcept
     {
-        return callback_ != nullptr;
+        return mCallback != nullptr;
     }
-}
+} // namespace pj_tools

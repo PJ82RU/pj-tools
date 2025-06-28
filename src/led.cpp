@@ -1,7 +1,7 @@
 #include "led.h"
 #include <esp_log.h>
 
-namespace tools
+namespace pj_tools
 {
     Led::Led(const gpio_num_t pin) noexcept
     {
@@ -10,75 +10,75 @@ namespace tools
 
     void Led::init(const gpio_num_t pin) noexcept
     {
-        if (pin_ == GPIO_NUM_NC && pin != GPIO_NUM_NC)
+        if (mPin == GPIO_NUM_NC && pin != GPIO_NUM_NC)
         {
-            pin_ = pin;
-            pinMode(pin_, OUTPUT);
-            digitalWrite(pin_, HIGH);
-            ESP_LOGD("LED", "Initialized pin %d", pin_);
+            mPin = pin;
+            pinMode(mPin, OUTPUT);
+            digitalWrite(mPin, HIGH);
+            log_d("Initialized pin %d", mPin);
         }
     }
 
     void Led::setMode(const LedMode mode) noexcept
     {
-        mode_ = mode;
-        step_ = 0;
-        next_update_ = 0;
+        mMode = mode;
+        mStep = 0;
+        mNextUpdate = 0;
         updateOutput(); // Немедленное обновление состояния
-        ESP_LOGI("LED", "Mode changed to %d", static_cast<int>(mode));
+        log_i("Mode changed to %d", static_cast<int>(mode));
     }
 
-    void Led::update(uint32_t current_time) noexcept
+    void Led::update(uint32_t currentTime) noexcept
     {
-        if (pin_ == GPIO_NUM_NC) return;
+        if (mPin == GPIO_NUM_NC) return;
 
-        if (current_time == 0)
+        if (currentTime == 0)
         {
-            current_time = millis();
+            currentTime = millis();
         }
 
-        if (current_time < next_update_)
+        if (currentTime < mNextUpdate)
         {
             return;
         }
 
-        uint16_t timeout = blink_interval;
+        uint16_t timeout = blinkInterval;
 
-        switch (mode_)
+        switch (mMode)
         {
-        case LedMode::On:
-            is_on = true;
+        case LedMode::ON:
+            mIsOn = true;
             break;
 
-        case LedMode::Blink:
-            is_on = !is_on;
-            step_ = is_on ? 1 : 0;
+        case LedMode::BLINK:
+            mIsOn = !mIsOn;
+            mStep = mIsOn ? 1 : 0;
             break;
 
-        case LedMode::DoubleBlink:
-            is_on = (step_ % 2) == 0;
-            step_ = (step_ + 1) % 4;
-            timeout = blink_interval / 2;
+        case LedMode::DOUBLE_BLINK:
+            mIsOn = (mStep % 2) == 0;
+            mStep = (mStep + 1) % 4;
+            timeout = blinkInterval / 2;
             break;
 
-        case LedMode::TripleBlink:
-            is_on = (step_ % 2) == 0;
-            step_ = (step_ + 1) % 6;
-            timeout = blink_interval / 3;
+        case LedMode::TRIPLE_BLINK:
+            mIsOn = (mStep % 2) == 0;
+            mStep = (mStep + 1) % 6;
+            timeout = blinkInterval / 3;
             break;
 
-        default: // Off
-            is_on = false;
+        default: // OFF
+            mIsOn = false;
             break;
         }
 
         updateOutput();
-        next_update_ = current_time + timeout;
+        mNextUpdate = currentTime + timeout;
     }
 
     void Led::updateOutput() const noexcept
     {
-        digitalWrite(pin_, is_on ? LOW : HIGH);
-        ESP_LOGD("LED", "Pin %d set to %s", pin_, is_on ? "LOW" : "HIGH");
+        digitalWrite(mPin, mIsOn ? LOW : HIGH);
+        log_d("Pin %d set to %s", mPin, mIsOn ? "LOW" : "HIGH");
     }
-}
+} // namespace pj_tools

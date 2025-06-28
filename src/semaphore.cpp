@@ -1,10 +1,17 @@
 #include "semaphore.h"
+#include <esp_log.h>
 
-namespace tools
+namespace pj_tools
 {
-    Semaphore::Semaphore(const bool recursive) : recursive_mutex(recursive)
+    Semaphore::Semaphore(const bool recursive) : mIsRecursive(recursive)
     {
-        handle = recursive_mutex ? xSemaphoreCreateRecursiveMutex() : xSemaphoreCreateMutex();
+        mHandle = mIsRecursive ? xSemaphoreCreateRecursiveMutex() : xSemaphoreCreateMutex();
+        if (mHandle == nullptr)
+        {
+            log_e("Failed to create %s semaphore", mIsRecursive ? "recursive" : "normal");
+            throw std::runtime_error("Failed to create semaphore");
+        }
+        log_d("%s semaphore created", mIsRecursive ? "Recursive" : "Normal");
     }
 
     Semaphore::~Semaphore() noexcept
@@ -12,11 +19,11 @@ namespace tools
         cleanup();
     }
 
-    Semaphore::Semaphore(Semaphore&& other) noexcept :
-        handle(other.handle),
-        recursive_mutex(other.recursive_mutex)
+    Semaphore::Semaphore(Semaphore&& other) noexcept
+        : mHandle(other.mHandle),
+          mIsRecursive(other.mIsRecursive)
     {
-        other.handle = nullptr;
+        other.mHandle = nullptr;
     }
 
     Semaphore& Semaphore::operator=(Semaphore&& other) noexcept
@@ -24,45 +31,48 @@ namespace tools
         if (this != &other)
         {
             cleanup();
-            handle = other.handle;
-            recursive_mutex = other.recursive_mutex;
-            other.handle = nullptr;
+            mHandle = other.mHandle;
+            mIsRecursive = other.mIsRecursive;
+            other.mHandle = nullptr;
         }
         return *this;
     }
 
     void Semaphore::cleanup() const noexcept
     {
-        if (handle)
+        if (mHandle)
         {
-            vSemaphoreDelete(handle);
+            vSemaphoreDelete(mHandle);
+            log_d("Semaphore deleted");
         }
     }
 
-    bool Semaphore::take(const TickType_t block_time) const noexcept
+    bool Semaphore::take(const TickType_t blockTime) const noexcept
     {
-        if (!handle) return false;
+        if (!mHandle) return false;
 
-        return recursive_mutex
-                   ? xSemaphoreTakeRecursive(handle, block_time) == pdTRUE
-                   : xSemaphoreTake(handle, block_time) == pdTRUE;
+        return mIsRecursive
+                   ? xSemaphoreTakeRecursive(mHandle, blockTime) == pdTRUE
+                   : xSemaphoreTake(mHandle, blockTime) == pdTRUE;
     }
 
-    bool Semaphore::take(const TickType_t block_time, const char* func, int line) const noexcept
+    bool Semaphore::take(const TickType_t blockTime, const char* func, int line) const noexcept
     {
-        const bool result = take(block_time);
+        const bool result = take(blockTime);
         if (!result && func)
         {
-            log_w("[%s:%d]: Semaphore take failed", func, line);
+            log_w("[%s:%d] Semaphore take timeout", func, line);
         }
         return result;
     }
 
     bool Semaphore::give() const noexcept
     {
-        if (!handle) return false;
+        if (!mHandle) return false;
 
-        return recursive_mutex ? xSemaphoreGiveRecursive(handle) == pdTRUE : xSemaphoreGive(handle) == pdTRUE;
+        return mIsRecursive
+                   ? xSemaphoreGiveRecursive(mHandle) == pdTRUE
+                   : xSemaphoreGive(mHandle) == pdTRUE;
     }
 
     bool Semaphore::give(const char* func, int line) const noexcept
@@ -70,13 +80,13 @@ namespace tools
         const bool result = give();
         if (!result && func)
         {
-            log_w("[%s:%d]: Semaphore give failed", func, line);
+            log_w("[%s:%d] Semaphore give failed", func, line);
         }
         return result;
     }
 
-    unsigned int Semaphore::get_count() const noexcept
+    unsigned int Semaphore::getCount() const noexcept
     {
-        return handle ? uxSemaphoreGetCount(handle) : 0;
+        return mHandle ? uxSemaphoreGetCount(mHandle) : 0;
     }
-}
+} // namespace pj_tools

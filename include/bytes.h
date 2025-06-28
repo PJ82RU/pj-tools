@@ -3,41 +3,41 @@
 
 #include <Arduino.h>
 
-namespace tools
+namespace pj_tools
 {
     /**
-     * Конвертировать байты в строку HEX
-     * @param bytes Массив байт
+     * @brief Конвертирует массив байт в HEX-строку
+     * @param bytes Указатель на массив байт
      * @param size Размер массива
-     * @param upper_case Строка HEX в верхнем регистре
-     * @return Строка HEX
+     * @param upperCase Флаг использования верхнего регистра
+     * @return HEX-строка
      */
-    String bytes2hex(const uint8_t bytes[], size_t size, bool upper_case = true);
+    String bytesToHex(const uint8_t* bytes, size_t size, bool upperCase = true) noexcept;
 
     /**
-     * Конвертировать строку HEX в байты
-     * @param hex Строка HEX
-     * @param bytes Массив байт
+     * @brief Конвертирует HEX-строку в массив байт
+     * @param hex HEX-строка
+     * @param bytes Указатель на массив для результата
      * @param size Размер массива
-     * @return Результат выполнения
+     * @return true в случае успеха
      */
-    bool hex2bytes(const String& hex, uint8_t bytes[], size_t size);
+    bool hexToBytes(const String& hex, uint8_t* bytes, size_t size) noexcept;
 
     /**
-     * Сравнить два массива данных
-     * @param buf1 Буфер данных 1
-     * @param buf2 Буфер данных 2
-     * @param size Размер буфера
-     * @return Результат сравнения
+     * @brief Сравнивает два массива байт
+     * @param buf1 Первый массив
+     * @param buf2 Второй массив
+     * @param size Размер массивов
+     * @return true если массивы идентичны
      */
-    bool compare(const uint8_t* buf1, const uint8_t* buf2, size_t size);
+    bool compareBytes(const uint8_t* buf1, const uint8_t* buf2, size_t size) noexcept;
 
     /**
-     * Поменять байты местами в двух байтовом числе uint16_t
-     * @param value Значение
-     * @return Новое значение
+     * @brief Меняет местами байты в 16-битном значении
+     * @param value Исходное значение
+     * @return Значение с переставленными байтами
      */
-    uint16_t byte_swap(uint16_t value);
-}
+    constexpr uint16_t swapBytes(uint16_t value) noexcept;
+} // namespace pj_tools
 
-#endif //PJ_TOOLS_BYTES_H
+#endif // PJ_TOOLS_BYTES_H

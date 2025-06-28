@@ -3,19 +3,14 @@
 
 #include <Arduino.h>
 
-// Макросы для удобного использования семафора с отладочной информацией
-/// @brief Макрос для захвата семафора с таймаутом 3 секунды и отладочной информацией
-#define SemaphoreTake() semaphore.take(pdMS_TO_TICKS(3000), __PRETTY_FUNCTION__, __LINE__)
-
-/// @brief Макрос для освобождения семафора с отладочной информацией
-#define SemaphoreGive() semaphore.give(__PRETTY_FUNCTION__, __LINE__)
-
-namespace tools
+namespace pj_tools
 {
-    /// @brief Класс-обертка для работы с семафорами FreeRTOS
-    ///
-    /// Предоставляет потокобезопасный интерфейс для работы с семафорами,
-    /// включая поддержку рекурсивных мьютексов и отладочной информации
+    /**
+     * @brief Класс-обертка для работы с семафорами FreeRTOS
+     *
+     * @details Предоставляет потокобезопасный интерфейс для работы с семафорами,
+     *          включая поддержку рекурсивных мьютексов и отладочной информации
+     */
     class Semaphore
     {
     public:
@@ -32,28 +27,28 @@ namespace tools
         ~Semaphore() noexcept;
 
         // Запрещаем копирование
-        Semaphore(const Semaphore&) = delete; ///< Запрет копирования
-        Semaphore& operator=(const Semaphore&) = delete; ///< Запрет присваивания
+        Semaphore(const Semaphore&) = delete;
+        Semaphore& operator=(const Semaphore&) = delete;
 
         // Разрешаем перемещение
-        Semaphore(Semaphore&& other) noexcept; ///< Конструктор перемещения
-        Semaphore& operator=(Semaphore&& other) noexcept; ///< Оператор перемещающего присваивания
+        Semaphore(Semaphore&& other) noexcept;
+        Semaphore& operator=(Semaphore&& other) noexcept;
 
         /**
          * @brief Захват семафора (блокирующий)
-         * @param block_time Время ожидания в тиках (portMAX_DELAY - бесконечно)
+         * @param blockTime Время ожидания в тиках (portMAX_DELAY - бесконечно)
          * @return true - успешный захват, false - таймаут или ошибка
          */
-        [[nodiscard]] bool take(TickType_t block_time = portMAX_DELAY) const noexcept;
+        [[nodiscard]] bool take(TickType_t blockTime = portMAX_DELAY) const noexcept;
 
         /**
          * @brief Захват семафора с отладочной информацией
-         * @param block_time Время ожидания в тиках
+         * @param blockTime Время ожидания в тиках
          * @param func Имя вызывающей функции (для отладки)
          * @param line Номер строки вызова (для отладки)
          * @return true - успешный захват, false - таймаут или ошибка
          */
-        [[nodiscard]] bool take(TickType_t block_time, const char* func, int line) const noexcept;
+        [[nodiscard]] bool take(TickType_t blockTime, const char* func, int line) const noexcept;
 
         /**
          * @brief Освобождение семафора
@@ -73,17 +68,22 @@ namespace tools
          * @brief Получение текущего значения счетчика семафора
          * @return Текущее значение счетчика
          */
-        [[nodiscard]] unsigned int get_count() const noexcept;
+        [[nodiscard]] unsigned int getCount() const noexcept;
 
     private:
-        SemaphoreHandle_t handle = nullptr; ///< Хэндл семафора FreeRTOS
-        bool recursive_mutex = false; ///< Флаг рекурсивного мьютекса
-
-        /**
-         * @brief Внутренняя функция освобождения ресурсов
-         */
+        /// @brief Внутренняя функция освобождения ресурсов
         void cleanup() const noexcept;
+
+        /// Хэндл семафора FreeRTOS
+        SemaphoreHandle_t mHandle = nullptr;
+
+        /// Флаг рекурсивного мьютекса
+        bool mIsRecursive = false;
     };
-}
+} // namespace pj_tools
+
+// Макросы для удобного использования семафора с отладочной информацией
+#define SEMAPHORE_TAKE(sem) (sem).take(pdMS_TO_TICKS(3000), __PRETTY_FUNCTION__, __LINE__)
+#define SEMAPHORE_GIVE(sem) (sem).give(__PRETTY_FUNCTION__, __LINE__)
 
 #endif // PJ_TOOLS_SEMAPHORE_H
