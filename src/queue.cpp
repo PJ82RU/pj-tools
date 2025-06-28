@@ -6,7 +6,8 @@ namespace tools
     Queue::Queue(const UBaseType_t queue_length, const UBaseType_t item_size)
     {
         handle_ = xQueueCreate(queue_length, item_size);
-        if (handle_ == nullptr) {
+        if (handle_ == nullptr)
+        {
             throw std::runtime_error("Failed to create queue");
         }
     }
@@ -18,11 +19,13 @@ namespace tools
 
     Queue::Queue(Queue&& other) noexcept :
         handle_(other.handle_)
-    {}
+    {
+    }
 
     Queue& Queue::operator=(Queue&& other) noexcept
     {
-        if (this != &other) {
+        if (this != &other)
+        {
             cleanup();
             handle_ = other.handle_;
         }
@@ -31,7 +34,8 @@ namespace tools
 
     void Queue::cleanup() noexcept
     {
-        if (handle_) {
+        if (handle_)
+        {
             vQueueDelete(handle_);
             handle_ = nullptr;
         }
@@ -64,7 +68,8 @@ namespace tools
 
     void Queue::reset() const noexcept
     {
-        if (handle_) {
+        if (handle_)
+        {
             xQueueReset(handle_);
         }
     }
