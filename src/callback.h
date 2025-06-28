@@ -26,8 +26,6 @@ namespace tools
             uint8_t buffer_index;
         };
 
-        SimpleCallback parent_callback;
-
         /**
          * @brief Конструктор callback менеджера
          * @param buffer_size Количество элементов буфера
@@ -36,8 +34,8 @@ namespace tools
          * @param stack_depth Глубина стека (по умолчанию 3072)
          * @param priority Приоритет задачи (по умолчанию 18)
          */
-        Callback(uint8_t buffer_size, size_t item_size, const char* name, uint32_t stack_depth = 3072,
-                 UBaseType_t priority = 18);
+        Callback(uint8_t buffer_size, size_t item_size, const char* name,
+                 uint32_t stack_depth = 3072, UBaseType_t priority = 18);
 
         ~Callback();
 
@@ -69,7 +67,7 @@ namespace tools
         /**
          * @brief Очистить все callback функции
          */
-        void clear() const noexcept;
+        void free() const noexcept;
 
         /**
          * @brief Вызвать callback
@@ -83,7 +81,9 @@ namespace tools
          * @param value Буфер для данных
          * @return true если данные прочитаны
          */
-        bool read_data(void* value) const noexcept;
+        bool read(void* value) const noexcept;
+
+        SimpleCallback parent_callback;
 
     private:
         static void callback_task(void* arg) noexcept;

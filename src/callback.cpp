@@ -40,7 +40,7 @@ namespace tools
             if (items_)
             {
                 num_items_ = num_callbacks;
-                clear();
+                free();
                 return thread_.start(&Callback::callback_task, this);
             }
         }
@@ -75,7 +75,7 @@ namespace tools
         return -1;
     }
 
-    void Callback::clear() const noexcept
+    void Callback::free() const noexcept
     {
         if (is_initialized() && semaphore_.take())
         {
@@ -98,7 +98,7 @@ namespace tools
         (void)semaphore_.give();
     }
 
-    bool Callback::read_data(void* value) const noexcept
+    bool Callback::read(void* value) const noexcept
     {
         if (!buffer_ || !value || !semaphore_.take()) return false;
 
