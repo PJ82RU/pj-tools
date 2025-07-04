@@ -1,40 +1,22 @@
-# pj-tools
-PJ Tools
+# PJ-Tools Library
 
+![CI](https://img.shields.io/github/actions/workflow/status/PJ82RU/esp32-c3-utils/ci.yml?branch=main)
+![License](https://img.shields.io/github/license/PJ82RU/esp32-c3-utils?color=blue)
 
+Набор утилит для ESP32
 
-### Создание объекта
+## Функционал
+- Управление LED
+- Потокобезопасные callback-и
+- Работа с очередями и семафорами
+- Утилиты для работы с данными
 
-```c++
-tools::Callback callback(16, sizeof(value_t), "CALLBACK");
+## Установка
+Добавьте в platformio.ini:
+```ini
+lib_deps =
+    https://github.com/PJ82RU/pj-tools.git
 ```
 
-
-
-### Пример инициализации
-
-```c++
-callback.init(2);
-callback.set(on_test);
-callback.set(on_test2, nullptr, true);
-```
-
-
-
-### Пример функции обратного вызова
-
-```c++
-bool on_test(void *p_value, void *p_parameters) {
-    auto *t = (value_t *) p_value;
-    Serial.println(t->value);
-    return false;
-}
-```
-
-
-
-### Вызов функции
-
-```c++
-callback.call(&value);
-```
+## Примеры
+Смотрите в папке `examples/`

@@ -1,0 +1,31 @@
+{
+  "name": "pj-tools",
+  "version": "1.1.0",
+  "description": "Набор утилит для работы с FreeRTOS, периферией и обработкой данных на ESP32",
+  "keywords": "freertos, esp32, callback, led, queue, semaphore",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PJ82RU/pj-tools.git"
+  },
+  "authors": [
+    {
+      "name": "PJ82. Spiridonov Vladislav",
+      "email": "project82@mail.ru"
+    }
+  ],
+  "license": "Unlicense",
+  "frameworks": ["arduino", "espidf"],
+  "platforms": ["espressif32"],
+  "headers": [
+    "bytes.h",
+    "callback.h",
+    "clock.h",
+    "led.h",
+    "queue.h",
+    "semaphore.h",
+    "simple_callback.h",
+    "thread.h"
+  ],
+  "dependencies": {
+  }
+}

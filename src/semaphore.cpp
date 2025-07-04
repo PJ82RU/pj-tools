@@ -1,4 +1,4 @@
-#include "semaphore.h"
+#include "pj-tools/semaphore.h"
 #include <esp_log.h>
 
 namespace pj_tools
